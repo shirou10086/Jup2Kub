@@ -12,7 +12,7 @@ def create_dockerfile(file_name, requirements_path, dockerfiles_path, python_ver
     dockerfile_content = f'''
     FROM python:{python_version}
     WORKDIR /app
-    COPY {file_name} /app/{os.path.basename(file_name)}
+    COPY {file_name} /app
     COPY {requirements_path} /app
     RUN pip install --ignore-installed -r requirements.txt  # Add the --ignore-installed flag
     CMD ["python", "/app/{os.path.basename(file_name)}"]
@@ -40,4 +40,4 @@ os.makedirs(dockerfiles_path, exist_ok=True)
 for file in os.listdir(output_dir):
     if file.endswith('.py'):
         dockerfile_path = create_dockerfile(file, 'requirements.txt', dockerfiles_path, python_version)
-        build_docker_image(dockerfile_path, f"cell_{file.split('.')[0]}", output_dir)
+        build_docker_image(dockerfile_path, f"{file.split('.')[0]}", output_dir)
