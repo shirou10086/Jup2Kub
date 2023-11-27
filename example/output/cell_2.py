@@ -1,6 +1,6 @@
-import pandas as pd
-from io import StringIO
 import matplotlib.pyplot as plt
+from io import StringIO
+import pandas as pd
 
 #read and process
 iris_data = pd.read_csv(StringIO(data))

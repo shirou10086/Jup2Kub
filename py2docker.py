@@ -1,9 +1,16 @@
 import os
 import subprocess
+import sys
 
-def create_dockerfile(file_name, requirements_path, dockerfiles_path):
+def get_python_version():
+    # 获取当前 Python 的主要和次要版本号
+    version = sys.version_info
+    return f"{version.major}.{version.minor}"
+    
+
+def create_dockerfile(file_name, requirements_path, dockerfiles_path, python_version):
     dockerfile_content = f'''
-    FROM python:3.8
+    FROM python:{python_version}
     WORKDIR /app
     COPY {file_name} /app
     COPY {requirements_path} /app
@@ -18,13 +25,15 @@ def create_dockerfile(file_name, requirements_path, dockerfiles_path):
 def build_docker_image(dockerfile_path, image_tag, context_path):
     subprocess.run(["docker", "build", "-f", dockerfile_path, "-t", image_tag, context_path], check=True)
 
+# 使用当前 Python 版本创建 Dockerfile 和构建 Docker 镜像
 output_dir = './example/output'
 requirements_path = os.path.join(output_dir, 'requirements.txt')
 dockerfiles_path = os.path.join(output_dir, 'docker')
+python_version = get_python_version()
 
 os.makedirs(dockerfiles_path, exist_ok=True)
 
 for file in os.listdir(output_dir):
     if file.endswith('.py'):
-        dockerfile_path = create_dockerfile(file, 'requirements.txt', dockerfiles_path)
+        dockerfile_path = create_dockerfile(file, 'requirements.txt', dockerfiles_path, python_version)
         build_docker_image(dockerfile_path, f"cell_{file.split('.')[0]}", output_dir)
