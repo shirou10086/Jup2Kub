@@ -3,10 +3,25 @@ import os
 import subprocess
 import sys
 import re
+import pkgutil
+from isort import place_module
+import shutil  # 添加导入 shutil 模块
+
+def get_python_version():
+    # Getting the current Python version
+    version = sys.version_info
+    return f"{version.major}.{version.minor}.{version.micro}"
 
 def get_installed_packages():
     result = subprocess.run(["pip", "freeze"], capture_output=True, text=True)
     return result.stdout if result.returncode == 0 else ""
+
+def is_standard_library_module(module_name):
+    if sys.version_info >= (3, 10):
+        return module_name in sys.stdlib_module_names
+    else:
+        return place_module(module_name)=='STDLIB'
+
 def extract_imports_and_files(notebook):
     imports = set()
     files = set()
@@ -28,6 +43,8 @@ def save_cells_to_files(notebook, output_directory, dependencies):
     dependencies_block = '\n'.join(dependencies) + '\n\n'
 
     valid_cell_index = 0
+    existing_files = os.listdir(output_directory)
+    valid_cell_index = len(existing_files)
     for cell in notebook.cells:
         if cell.cell_type == 'code' and cell.source.strip():
             cell_file_path = os.path.join(output_directory, f"cell_{valid_cell_index}.py")
@@ -40,27 +57,29 @@ def save_cells_to_files(notebook, output_directory, dependencies):
 def get_environment_info():
     result = subprocess.run(["pip", "freeze"], capture_output=True, text=True)
     return result.stdout if result.returncode == 0 else "Error capturing environment info"
-def map_dependencies_to_versions(dependencies, installed_packages):
-    # 创建一个映射，将子模块映射到顶级包
-    submodule_to_package = {
-        'matplotlib.pyplot': 'matplotlib',
-        # 这里可以添加更多映射
-    }
 
+def map_dependencies_to_versions(dependencies, installed_packages):
     versioned_dependencies = set()
+
     for dep in dependencies:
-        # 从依赖中提取包名
-        package_name = dep.split()[1] if 'import ' in dep else dep.split()[2]
-        package_name = submodule_to_package.get(package_name, package_name)
-        # 寻找匹配的版本
-        regex = re.compile(rf"{package_name}==[\d\.]+", re.IGNORECASE)
-        matches = regex.findall(installed_packages)
-        if matches:
-            versioned_dependencies.add(matches[0])
-        else:
-            print(f"Warning: Version for '{package_name}' not found.")
+        # Extract the package name before the first dot (if present)
+        split_dep = dep.split()
+        if len(split_dep) >= 2:
+            package_name = split_dep[1] if 'import ' in dep else split_dep[2]
+            package_name = package_name.split('.')[0]  # Get the part before the first dot
+
+            # Check if the package is a standard library module
+            if not is_standard_library_module(package_name):
+                # Search for a matching version in installed packages
+                regex = re.compile(rf"{package_name}==[\d\.]+", re.IGNORECASE)
+                matches = regex.findall(installed_packages)
+                if matches:
+                    versioned_dependencies.add(matches[0])
+                else:
+                    print(f"Warning: Version for '{package_name}' not found.")
 
     return versioned_dependencies
+
 def save_requirements(dependencies, output_directory):
     requirements_content = '\n'.join(dependencies)
     requirements_path = os.path.join(output_directory, 'requirements.txt')
@@ -80,6 +99,6 @@ def process_notebook(notebook_path, output_directory):
     save_requirements(versioned_dependencies, output_directory)
 
 # Example usage
-notebook_path = './example/jup2kub_iris.ipynb'
+notebook_path = './example/jup2kub_iris_withpy.ipynb'
 output_directory = './example/output'
 process_notebook(notebook_path, output_directory)
