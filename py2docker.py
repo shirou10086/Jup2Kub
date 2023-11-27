@@ -12,11 +12,12 @@ def create_dockerfile(file_name, requirements_path, dockerfiles_path, python_ver
     dockerfile_content = f'''
     FROM python:{python_version}
     WORKDIR /app
-    COPY {file_name} /app
+    COPY {file_name} /app/{os.path.basename(file_name)}
     COPY {requirements_path} /app
     RUN pip install --ignore-installed -r requirements.txt  # Add the --ignore-installed flag
-    CMD ["python", "/app/{file_name}"]
+    CMD ["python", "/app/{os.path.basename(file_name)}"]
     '''
+
     dockerfile_path = os.path.join(dockerfiles_path, f"Dockerfile_{file_name.split('.')[0]}")
     with open(dockerfile_path, 'w') as file:
         file.write(dockerfile_content)
