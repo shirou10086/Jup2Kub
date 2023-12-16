@@ -1,0 +1,31 @@
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cell-0-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: cell-0
+  template:
+    metadata:
+      labels:
+        app: cell-0
+    spec:
+      containers:
+      - name: cell-0-container
+        image: cell_0:latest
+        env:
+        - name: KAFKA_BROKER
+          value: "0.0:9092"
+        - name: PRODUCER_TOPIC
+          value: "None"
+        volumeMounts:
+        - name: efs-volume
+          mountPath: /mnt/efs
+      volumes:
+      - name: efs-volume
+        persistentVolumeClaim:
+          claimName: cell-0-efs-pvc
+    
