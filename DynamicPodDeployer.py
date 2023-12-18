@@ -2,6 +2,8 @@ import subprocess
 from kubernetes import client, config
 from time import sleep
 import os
+import textwrap
+
 
 def run_command(command):
     try:
@@ -54,20 +56,18 @@ class DynamicPodDeployer:
 
     def deploy_to_kubernetes(self, image_name, tag, pod_name, pod_info):
         sanitized_pod_name = pod_name.replace("_", "-")  # Replace underscores with dashes
-        env_content = ""
-        if pod_info['is_producer']:
-            env_content += f"""
-            - name: PRODUCER_TOPIC
-            value: "{pod_info['topic']}"
-            """
-        if pod_info['is_consumer']:
-            env_content += f"""
-            - name: CONSUMER_TOPIC
-            value: "{pod_info['topic']}"
-            """
 
+        # Initialize the environment content string
+        env_content = ""
+
+        # Add environment variables based on pod_info
+        if pod_info['is_producer']:
+            env_content += f"        - name: PRODUCER_TOPIC\n          value: \"{pod_info['topic']}\"\n"
+        if pod_info['is_consumer']:
+            env_content += f"        - name: CONSUMER_TOPIC\n          value: \"{pod_info['topic']}\"\n"
         pv, pvc = self.create_efs_pv_pvc(f"{sanitized_pod_name}-efs", "default", "fs-0af813165c0ebd42b.efs.us-east-1.amazonaws.com")
 
+        # Use the environment content in the deployment YAML
         deployment_content = f"""
 apiVersion: apps/v1
 kind: Deployment
@@ -87,17 +87,15 @@ spec:
       - name: {sanitized_pod_name}-container
         image: {image_name}:{tag}
         env:
-        - name: KAFKA_BROKER
-          value: "0.0:9092"
-        {env_content.strip()}
+{env_content}
         volumeMounts:
         - name: efs-volume
           mountPath: /mnt/efs
       volumes:
       - name: efs-volume
         persistentVolumeClaim:
-          claimName: {sanitized_pod_name}-efs-pvc
-    """
+          claimName: {sanitized_pod_name}-efs
+"""
 
         output_dir = "./example/output/k8s"
         self.create_output_directory(output_dir)
@@ -122,19 +120,22 @@ spec:
 
 
 
-        def wait_for_pod_ready(self, pod_name):
-            print(f"Waiting for {pod_name} to be ready...")
-            ready = False
-            while not ready:
-                pod_status = self.v1.read_namespaced_pod_status(pod_name, "default")
-                if pod_status.status.conditions:
-                    for condition in pod_status.status.conditions:
-                        if condition.type == "Ready" and condition.status == "True":
-                            ready = True
-                            break
-                if not ready:
-                    sleep(10)
-            print(f"{pod_name} is ready.")
+    def wait_for_pod_ready(self, label_selector, namespace='default'):
+        v1 = client.CoreV1Api()
+        ready = False
+        while not ready:
+            pods = v1.list_namespaced_pod(namespace=namespace, label_selector=label_selector)
+            if not pods.items:
+                print(f"No pods found with selector '{label_selector}'. Waiting...")
+                sleep(10)
+                continue
+
+            ready = all(pod.status.phase == "Running" for pod in pods.items)
+            if not ready:
+                print("Waiting for pods to be ready...")
+                sleep(10)
+
+        print(f"All pods with selector '{label_selector}' are ready.")
     def wait_for_pod_ready(self, pod_name):
         print(f"Waiting for {pod_name} to be ready...")
         ready = False

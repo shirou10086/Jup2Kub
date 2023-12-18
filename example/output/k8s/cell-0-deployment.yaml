@@ -17,15 +17,13 @@ spec:
       - name: cell-0-container
         image: cell_0:latest
         env:
-        - name: KAFKA_BROKER
-          value: "0.0:9092"
         - name: PRODUCER_TOPIC
           value: "None"
+
         volumeMounts:
         - name: efs-volume
           mountPath: /mnt/efs
       volumes:
       - name: efs-volume
         persistentVolumeClaim:
-          claimName: cell-0-efs-pvc
-    
+          claimName: cell-0-efs
