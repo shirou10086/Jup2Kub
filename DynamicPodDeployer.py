@@ -120,35 +120,22 @@ spec:
 
 
 
-    def wait_for_pod_ready(self, label_selector, namespace='default'):
-        v1 = client.CoreV1Api()
+    def wait_for_pod_ready(self, deployment_name, namespace='default'):
         ready = False
         while not ready:
-            pods = v1.list_namespaced_pod(namespace=namespace, label_selector=label_selector)
+            pods = self.v1.list_namespaced_pod(namespace=namespace, label_selector=f"app={deployment_name}")
             if not pods.items:
-                print(f"No pods found with selector '{label_selector}'. Waiting...")
+                print(f"No pods found for deployment '{deployment_name}'. Waiting...")
                 sleep(10)
                 continue
 
             ready = all(pod.status.phase == "Running" for pod in pods.items)
             if not ready:
-                print("Waiting for pods to be ready...")
+                print(f"Waiting for pods of deployment '{deployment_name}' to be ready...")
                 sleep(10)
 
-        print(f"All pods with selector '{label_selector}' are ready.")
-    def wait_for_pod_ready(self, pod_name):
-        print(f"Waiting for {pod_name} to be ready...")
-        ready = False
-        while not ready:
-            pod_status = self.v1.read_namespaced_pod_status(pod_name, "default")
-            if pod_status.status.conditions:
-                for condition in pod_status.status.conditions:
-                    if condition.type == "Ready" and condition.status == "True":
-                        ready = True
-                        break
-            if not ready:
-                sleep(10)
-        print(f"{pod_name} is ready.")
+        print(f"All pods for deployment '{deployment_name}' are ready.")
+
 
     def create_efs_pv_pvc(self, name, namespace, efs_dns_name):
         sanitized_name = name.replace("_", "-")  # 确保名称符合规范
