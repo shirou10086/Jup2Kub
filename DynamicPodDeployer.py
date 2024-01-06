@@ -4,7 +4,6 @@ from time import sleep
 import os
 import textwrap
 
-
 def run_command(command):
     try:
         result = subprocess.run(command, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
@@ -54,21 +53,24 @@ class DynamicPodDeployer:
                 self.wait_for_pod_ready(pod_info['depends_on'])
             self.deploy_to_kubernetes(image_name, tag, pod_name, pod_info)
 
+
     def deploy_to_kubernetes(self, image_name, tag, pod_name, pod_info):
-        sanitized_pod_name = pod_name.replace("_", "-")  # Replace underscores with dashes
+      sanitized_pod_name = pod_name.replace("_", "-")
 
-        # Initialize the environment content string
-        env_content = ""
+      # Initialize the environment content string
+      env_content = ""
 
-        # Add environment variables based on pod_info
-        if pod_info['is_producer']:
-            env_content += f"        - name: PRODUCER_TOPIC\n          value: \"{pod_info['topic']}\"\n"
-        if pod_info['is_consumer']:
-            env_content += f"        - name: CONSUMER_TOPIC\n          value: \"{pod_info['topic']}\"\n"
-        pv, pvc = self.create_efs_pv_pvc(f"{sanitized_pod_name}-efs", "default", "fs-0af813165c0ebd42b.efs.us-east-1.amazonaws.com")
+      # Add environment variables based on pod_info
+      if pod_info['is_producer']:
+        env_content += f"        - name: PRODUCER_TOPIC\n          value: \"{pod_info['topic']}\"\n"
+      if pod_info['is_consumer']:
+        env_content += f"        - name: CONSUMER_TOPIC\n          value: \"{pod_info['topic']}\"\n"
+    
+      # 使用本地存储的 PV 和 PVC
+      pv, pvc = self.create_local_pv_pvc(f"{sanitized_pod_name}-local", "default", "/Documents/Jup2Kub/example/output")
 
-        # Use the environment content in the deployment YAML
-        deployment_content = f"""
+      # 使用环境内容在部署 YAML 中
+      deployment_content = f"""
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -86,37 +88,39 @@ spec:
       containers:
       - name: {sanitized_pod_name}-container
         image: {image_name}:{tag}
+        imagePullPolicy: IfNotPresent  # 修改此处
         env:
 {env_content}
         volumeMounts:
-        - name: efs-volume
-          mountPath: /mnt/efs
+        - name: local-volume
+          mountPath: /mnt/local
       volumes:
-      - name: efs-volume
+      - name: local-volume
         persistentVolumeClaim:
-          claimName: {sanitized_pod_name}-efs
+          claimName: {sanitized_pod_name}-local
 """
 
-        output_dir = "./example/output/k8s"
-        self.create_output_directory(output_dir)
+      output_dir = "./example/output/k8s"
+      self.create_output_directory(output_dir)
 
-        pv_file_path = os.path.join(output_dir, f"{sanitized_pod_name}-efs-pv.yaml")
-        pvc_file_path = os.path.join(output_dir, f"{sanitized_pod_name}-efs-pvc.yaml")
-        deployment_file_path = os.path.join(output_dir, f"{sanitized_pod_name}-deployment.yaml")
+      pv_file_path = os.path.join(output_dir, f"{sanitized_pod_name}-local-pv.yaml")
+      pvc_file_path = os.path.join(output_dir, f"{sanitized_pod_name}-local-pvc.yaml")
+      deployment_file_path = os.path.join(output_dir, f"{sanitized_pod_name}-deployment.yaml")
 
-        with open(pv_file_path, "w") as file:
-            file.write(pv)
+      with open(pv_file_path, "w") as file:
+        file.write(pv)
 
-        with open(pvc_file_path, "w") as file:
-            file.write(pvc)
+      with open(pvc_file_path, "w") as file:
+        file.write(pvc)
 
-        run_command(["kubectl", "apply", "-f", pv_file_path])
-        run_command(["kubectl", "apply", "-f", pvc_file_path])
+      run_command(["kubectl", "apply", "-f", pv_file_path])
+      run_command(["kubectl", "apply", "-f", pvc_file_path])
 
-        with open(deployment_file_path, "w") as file:
-            file.write(deployment_content)
+      with open(deployment_file_path, "w") as file:
+          file.write(deployment_content)
 
-        run_command(["kubectl", "apply", "-f", deployment_file_path])
+      run_command(["kubectl", "apply", "-f", deployment_file_path])
+
 
 
 
@@ -164,6 +168,49 @@ spec:
   accessModes:
     - ReadWriteMany
   storageClassName: efs
+  resources:
+    requests:
+      storage: 5Gi
+"""
+
+        return pv, pvc
+
+    def create_local_pv_pvc(self, name, namespace, storage_path):
+        sanitized_name = name.replace("_", "-")
+        pv = f"""apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: {sanitized_name}
+spec:
+  capacity:
+    storage: 5Gi
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: local-storage
+  hostPath:
+    path: {storage_path}
+    type: DirectoryOrCreate
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+      - matchExpressions:
+        - key: kubernetes.io/hostname
+          operator: In
+          values:
+          - "docker-desktop"
+"""
+
+        pvc = f"""apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {sanitized_name}
+  namespace: {namespace}
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: local-storage
   resources:
     requests:
       storage: 5Gi

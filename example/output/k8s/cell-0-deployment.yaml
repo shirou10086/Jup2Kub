@@ -16,14 +16,15 @@ spec:
       containers:
       - name: cell-0-container
         image: cell_0:latest
+        imagePullPolicy: IfNotPresent  # 修改此处
         env:
         - name: PRODUCER_TOPIC
           value: "None"
 
         volumeMounts:
-        - name: efs-volume
-          mountPath: /mnt/efs
+        - name: local-volume
+          mountPath: /mnt/local
       volumes:
-      - name: efs-volume
+      - name: local-volume
         persistentVolumeClaim:
-          claimName: cell-0-efs
+          claimName: cell-0-local
