@@ -4,7 +4,7 @@ import time
 import threading
 import sys
 
-pid = 5432  # 替换为您要监控的进程的PID
+pid = 6454  # 替换为您要监控的进程的PID
 process = psutil.Process(pid)
 
 cpu_times = []
