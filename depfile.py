@@ -2,6 +2,7 @@ import os
 import nbformat
 import shutil
 import split_notebook_python
+#check the dependent files
 def check_python_file_for_imports(file_path):
     installed_packages = split_notebook_python.get_installed_packages()
     with open(file_path, 'r', encoding='utf-8') as file:

@@ -49,7 +49,7 @@ class DynamicPodDeployer:
         temp_filename = "temp.yaml"
         with open(temp_filename, "w") as file:
             file.write(yaml_content)
-        
+
         # 使用 kubectl 命令应用 YAML 文件
         run_command(["kubectl", "apply", "-f", temp_filename])
 
@@ -83,7 +83,7 @@ class DynamicPodDeployer:
         env_content += f"        - name: PRODUCER_TOPIC\n          value: \"{pod_info['topic']}\"\n"
       if pod_info['is_consumer']:
         env_content += f"        - name: CONSUMER_TOPIC\n          value: \"{pod_info['topic']}\"\n"
-    
+
       # 使用本地存储的 PV 和 PVC
       pv, pvc = self.create_local_pv_pvc(f"{sanitized_pod_name}-local", "default", "/Documents/Jup2Kub/example/output")
 
@@ -270,7 +270,7 @@ spec:
             kind="StatefulSet",
             metadata=client.V1ObjectMeta(name=sanitized_pod_name),
             spec=client.V1StatefulSetSpec(
-                service_name=sanitized_pod_name, 
+                service_name=sanitized_pod_name,
                 replicas=replicas,
                 selector=client.V1LabelSelector(
                     match_labels={"app": sanitized_pod_name}
