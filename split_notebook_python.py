@@ -99,6 +99,6 @@ def process_notebook(notebook_path, output_directory):
     save_requirements(versioned_dependencies, output_directory)
 
 # Example usage
-notebook_path = './example/Biotextbook.ipynb'
+notebook_path = './example/LIGO-example.ipynb'
 output_directory = './example/output'
 process_notebook(notebook_path, output_directory)
