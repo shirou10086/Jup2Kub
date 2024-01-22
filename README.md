@@ -1,4 +1,4 @@
-# Jup2Kub: Convert Jupyter Notebooks to Kubernetes Deployments
+# [Jup2Kub: Convert Jupyter Notebooks to Kubernetes Deployments](https://arxiv.org/pdf/2311.12308.pdf)
 
 ## Abstract
 Jup2Kub is an innovative tool designed to transform Jupyter notebooks into scalable and fault-tolerant workflows within a Kubernetes environment. It addresses common issues faced when dealing with large datasets in scientific computing, such as scalability, fault tolerance, and dependency management. Jup2Kub facilitates the translation of scientific workflows from a Jupyter notebook format to a distributed, high-performance Kubernetes setting.
@@ -13,8 +13,8 @@ Jup2Kub is an innovative tool designed to transform Jupyter notebooks into scala
 ### Prerequisites
 - [Docker Desktop](https://www.docker.com/products/docker-desktop) with Kubernetes enabled
 - Python 3.x
-- Jupyter Notebook writen in python
-- Ubuntu 23
+- Jupyter Notebook wanted to transform(only supporting python under current version)
+- macOS/Ubuntu (donot work in windows,example case in Ubuntu23.1)
 
 ### Installation
 1. Clone the Jup2Kub repository:
@@ -42,14 +42,12 @@ Jup2Kub is an innovative tool designed to transform Jupyter notebooks into scala
    python delete.py
    ```
 
-## Contributing
-Your contributions are welcome! Please read our [Contribution Guidelines](CONTRIBUTING.md) for details on how to contribute to the project.
 
 ## License
 This project is licensed under the [MIT License](LICENSE).
 
 ## Acknowledgments
-Special thanks to all contributors, maintainers, and users of this project. Your support and feedback are greatly appreciated.
+Special thanks to all users of this project.
 
 ---
 For more information and support, please refer to the project documentation or contact the project maintainers.
