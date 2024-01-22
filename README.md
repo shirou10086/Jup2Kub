@@ -13,7 +13,7 @@ Jup2Kub is an innovative tool designed to transform Jupyter notebooks into scala
 ### Prerequisites
 - [Docker Desktop](https://www.docker.com/products/docker-desktop) with Kubernetes enabled
 - Python 3.x
-- Jupyter Notebook
+- Jupyter Notebook writen in python
 - Ubuntu 23
 
 ### Installation
