@@ -18,7 +18,7 @@ def find_first_process(name):
         return None
 
 # 查找名为 statefulset.py 的Python脚本的第一个进程ID
-pid = find_first_process('statefulset.py')
+pid = find_first_process('main.py')
 
 if pid:
     print(f"Found process with PID: {pid}")

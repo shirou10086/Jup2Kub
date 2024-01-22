@@ -5,6 +5,8 @@ from py2docker import create_dockerfile, build_docker_image
 from statefulset import PodManager, DynamicPodDeployer
 import os
 import delete
+import time
+
 def count_cell_files(output_dir):
     files = os.listdir(output_dir)
     cell_files = [file for file in files if file.startswith('cell') and file.endswith('.py')]

@@ -4,7 +4,8 @@ import time
 import threading
 import sys
 #a helper function to monitor the current running jupyter notebook
-pid = 6454  # 替换为您要监控的进程的PID
+pid = 184130
+  # 替换为您要监控的进程的PID
 process = psutil.Process(pid)
 
 cpu_times = []

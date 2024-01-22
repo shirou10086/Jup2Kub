@@ -100,6 +100,6 @@ def process_notebook(notebook_path, output_directory):
     save_requirements(versioned_dependencies, output_directory)
 '''
 # Example usage: python split_notebook_python.py
-notebook_path = './example/LIGO-example.ipynb'
+notebook_path = './example/Hydrogen.ipynb'
 output_directory = './example/output'
 process_notebook(notebook_path, output_directory)'''
