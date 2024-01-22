@@ -97,8 +97,8 @@ def process_notebook(notebook_path, output_directory):
 
     save_cells_to_files(nb, output_directory, dependencies)
     save_requirements(versioned_dependencies, output_directory)
-
+'''
 # Example usage
 notebook_path = './example/LIGO-example.ipynb'
 output_directory = './example/output'
-process_notebook(notebook_path, output_directory)
+process_notebook(notebook_path, output_directory)'''

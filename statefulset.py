@@ -313,7 +313,7 @@ spec:
             print(f"StatefulSet {sanitized_pod_name} deployed successfully.")
         except client.rest.ApiException as e:
             print(f"Exception when deploying StatefulSet: {e}")
-
+'''
 # existing run_command function
 
 def main():
@@ -327,4 +327,4 @@ def main():
     deployer.deploy_all_pods(tag)
 
 if __name__ == "__main__":
-    main()
+    main()'''
