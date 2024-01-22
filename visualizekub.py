@@ -5,6 +5,7 @@ import threading
 import sys
 
 import subprocess
+#a helper function to monitor the current running k8s programs
 
 def find_first_process(name):
     try:

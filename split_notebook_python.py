@@ -5,7 +5,8 @@ import sys
 import re
 import pkgutil
 from isort import place_module
-import shutil  # 添加导入 shutil 模块
+import shutil  
+#python file for spliting notebook writen in python to different python files
 
 def get_python_version():
     # Getting the current Python version
@@ -98,7 +99,7 @@ def process_notebook(notebook_path, output_directory):
     save_cells_to_files(nb, output_directory, dependencies)
     save_requirements(versioned_dependencies, output_directory)
 '''
-# Example usage
+# Example usage: python split_notebook_python.py
 notebook_path = './example/LIGO-example.ipynb'
 output_directory = './example/output'
 process_notebook(notebook_path, output_directory)'''

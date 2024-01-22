@@ -3,7 +3,7 @@ from kubernetes import client, config
 from time import sleep
 import os
 import textwrap
-
+#this is the alternate deployer for k8s
 def run_command(command):
     try:
         result = subprocess.run(command, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
@@ -66,10 +66,10 @@ class DynamicPodDeployer:
       if pod_info['is_consumer']:
         env_content += f"        - name: CONSUMER_TOPIC\n          value: \"{pod_info['topic']}\"\n"
     
-      # 使用本地存储的 PV 和 PVC
+      # use local PV 和 PVC
       pv, pvc = self.create_local_pv_pvc(f"{sanitized_pod_name}-local", "default", "/Documents/Jup2Kub/example/output")
 
-      # 使用环境内容在部署 YAML 中
+      # deplay by yaml files
       deployment_content = f"""
 apiVersion: apps/v1
 kind: Deployment
@@ -88,7 +88,7 @@ spec:
       containers:
       - name: {sanitized_pod_name}-container
         image: {image_name}:{tag}
-        imagePullPolicy: IfNotPresent  # 修改此处
+        imagePullPolicy: IfNotPresent  #change here
         env:
 {env_content}
         volumeMounts:
@@ -142,7 +142,7 @@ spec:
 
 
     def create_efs_pv_pvc(self, name, namespace, efs_dns_name):
-        sanitized_name = name.replace("_", "-")  # 确保名称符合规范
+        sanitized_name = name.replace("_", "-") 
         pv = f"""apiVersion: v1
 kind: PersistentVolume
 metadata:

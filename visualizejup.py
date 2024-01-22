@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import time
 import threading
 import sys
-
+#a helper function to monitor the current running jupyter notebook
 pid = 6454  # 替换为您要监控的进程的PID
 process = psutil.Process(pid)
 

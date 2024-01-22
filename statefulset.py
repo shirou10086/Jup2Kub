@@ -3,7 +3,7 @@ from kubernetes import client, config
 from time import sleep
 import os
 import textwrap
-
+#this file is the main deply k8s pods method by deploying statefulset
 def run_command(command):
     try:
         result = subprocess.run(command, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
@@ -45,15 +45,15 @@ class DynamicPodDeployer:
         self.apps_v1 = client.AppsV1Api()
 
     def apply_yaml(self, yaml_content):
-        # 创建一个临时文件来保存 YAML 内容
+        # use temp file to store yaml
         temp_filename = "temp.yaml"
         with open(temp_filename, "w") as file:
             file.write(yaml_content)
 
-        # 使用 kubectl 命令应用 YAML 文件
+        # apply yaml
         run_command(["kubectl", "apply", "-f", temp_filename])
 
-        # 删除临时文件
+        # remove temp
         os.remove(temp_filename)
 
     def create_output_directory(self, path):
@@ -84,10 +84,10 @@ class DynamicPodDeployer:
       if pod_info['is_consumer']:
         env_content += f"        - name: CONSUMER_TOPIC\n          value: \"{pod_info['topic']}\"\n"
 
-      # 使用本地存储的 PV 和 PVC
+      # use local storage pv and pvc
       pv, pvc = self.create_local_pv_pvc(f"{sanitized_pod_name}-local", "default", "/Documents/Jup2Kub/example/output")
 
-      # 使用环境内容在部署 YAML 中
+      # deploy in local yaml files
       deployment_content = f"""
 apiVersion: apps/v1
 kind: Deployment
@@ -160,7 +160,7 @@ spec:
 
 
     def create_efs_pv_pvc(self, name, namespace, efs_dns_name):
-        sanitized_name = name.replace("_", "-")  # 确保名称符合规范
+        sanitized_name = name.replace("_", "-")  
         pv = f"""apiVersion: v1
 kind: PersistentVolume
 metadata:
@@ -251,20 +251,20 @@ spec:
         sanitized_pod_name = pod_name.replace("_", "-")
         self.create_headless_service(sanitized_pod_name, "default")
 
-        # 准备环境变量
+        # env vars
         env_vars = []
         if pod_info['is_producer']:
             env_vars.append(client.V1EnvVar(name="PRODUCER_TOPIC", value=pod_info['topic']))
         if pod_info['is_consumer']:
             env_vars.append(client.V1EnvVar(name="CONSUMER_TOPIC", value=pod_info['topic']))
 
-        # 为 StatefulSet 的每个 Pod 创建 PV 和 PVC
+        # 为 StatefulSet every pods get pv and pvc
         pv, pvc = self.create_local_pv_pvc(sanitized_pod_name, "default", "/mnt/data")
 
-        # 应用 PV 和 PVC
+        # apply pv and pvc
         self.apply_yaml(pv)
         self.apply_yaml(pvc)
-        # 定义 StatefulSet
+        # define StatefulSet
         stateful_set_body = client.V1StatefulSet(
             api_version="apps/v1",
             kind="StatefulSet",
@@ -291,7 +291,7 @@ spec:
                                 ]
                             )
                         ],
-                        volumes=[  # 定义卷
+                        volumes=[  # define volumes
                             client.V1Volume(
                                 name=sanitized_pod_name,
                                 persistent_volume_claim=client.V1PersistentVolumeClaimVolumeSource(
@@ -304,10 +304,10 @@ spec:
             )
         )
 
-        # 部署 StatefulSet
+        # deploy StatefulSet
         try:
             self.apps_v1.create_namespaced_stateful_set(
-                namespace="default",  # 指定命名空间
+                namespace="default",  # det namespace
                 body=stateful_set_body
             )
             print(f"StatefulSet {sanitized_pod_name} deployed successfully.")
@@ -315,6 +315,7 @@ spec:
             print(f"Exception when deploying StatefulSet: {e}")
 '''
 # existing run_command function
+#a demo of how to use statefulset: "python statefulset.py" input cell count after running splitnotebook and py2docker
 
 def main():
     x = int(input("Enter the number x to deploy cells from 0 to x: "))
