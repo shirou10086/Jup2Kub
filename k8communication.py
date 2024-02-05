@@ -1,6 +1,6 @@
 import requests
 import os
-
+#this file works for k8s communication stats
 def get_cluster_ip(service_name, namespace='default'):
     #finds the clusterip
     cmd = [

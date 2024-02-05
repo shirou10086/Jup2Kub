@@ -5,6 +5,7 @@ import threading
 import sys
 
 import subprocess
+#a helper function to monitor the current running k8s programs
 
 def find_first_process(name):
     try:
@@ -17,7 +18,7 @@ def find_first_process(name):
         return None
 
 # 查找名为 statefulset.py 的Python脚本的第一个进程ID
-pid = find_first_process('statefulset.py')
+pid = find_first_process('main.py')
 
 if pid:
     print(f"Found process with PID: {pid}")

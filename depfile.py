@@ -2,7 +2,7 @@ import os
 import nbformat
 import shutil
 import split_notebook_python
-#check the dependent files
+#this py file check the dependent files
 def check_python_file_for_imports(file_path):
     installed_packages = split_notebook_python.get_installed_packages()
     with open(file_path, 'r', encoding='utf-8') as file:
@@ -29,7 +29,7 @@ def extract_imported_module_names(notebook):
     return imported_modules
 
 def copy_python_modules(imported_modules, source_directory, output_directory):
-    current_num = 0  # 用于编号文件
+    current_num = 0  # for file numbers
     for module_name in imported_modules:
         python_module_path = os.path.join(source_directory, f"{module_name}.py")
         if os.path.isfile(python_module_path):

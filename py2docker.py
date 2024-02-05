@@ -1,9 +1,9 @@
 import os
 import subprocess
 import sys
-
+#build docker images based on splited python files
 def get_python_version():
-    # 获取当前 Python 的主要和次要版本号
+    # get current version
     version = sys.version_info
     return f"{version.major}.{version.minor}"
 
@@ -24,12 +24,14 @@ def create_dockerfile(file_name, requirements_path, dockerfiles_path, python_ver
     return dockerfile_path
 
 def build_docker_image(dockerfile_path, image_tag, context_path):
+    print('creating docker')
     try:
         subprocess.run(["docker", "build", "-f", dockerfile_path, "-t", image_tag, context_path], check=True)
     except subprocess.CalledProcessError as e:
         print(f"An standard libray been included in requirements.txt while building the Docker image: {e}")
 
-# 使用当前 Python 版本创建 Dockerfile 和构建 Docker 镜像
+# an example of use local python version create docker images
+#use this by : "python py2docker.py" then type the cell count number
 output_dir = './example/output'
 requirements_path = os.path.join(output_dir, 'requirements.txt')
 dockerfiles_path = os.path.join(output_dir, 'docker')
