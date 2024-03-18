@@ -98,8 +98,8 @@ def process_notebook(notebook_path, output_directory):
 
     save_cells_to_files(nb, output_directory, dependencies)
     save_requirements(versioned_dependencies, output_directory)
-'''
+
 # Example usage: python split_notebook_python.py
-notebook_path = './example/Hydrogen.ipynb'
+notebook_path = './example/iris.ipynb'
 output_directory = './example/output'
-process_notebook(notebook_path, output_directory)'''
+process_notebook(notebook_path, output_directory)
