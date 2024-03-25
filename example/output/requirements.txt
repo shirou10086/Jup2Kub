@@ -1,4 +1,4 @@
 grpcio
-grpcio-tools
-protobuf
 numpy
+protobuf
+grpcio-tools
