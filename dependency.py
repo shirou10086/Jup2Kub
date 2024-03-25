@@ -39,7 +39,6 @@ def process_file(filepath, track_list_path):
 
     # 准备提交代码
     submit_code = "\n# SUBMIT CODE START\n"
-    submit_code += "import ResultsHub as rh\n"
     submit_code += f"submission = rh.ResultsHubSubmission(cell_number={cell_number}, host='results-hub-service.default.svc.cluster.local')\n"
     for var in tracker.defined_vars:
         if var == 'submission':
@@ -58,6 +57,7 @@ def process_file(filepath, track_list_path):
 
     # 准备获取代码
     fetch_code = "# FETCH CODE START\n"
+    fetch_code +="import ResultsHub as rh"
     for var, update_cell in variable_track_list.items():
         if update_cell < cell_number:
             fetch_code += f"{var} = rh.fetchVarResult('{var}', varAncestorCell={update_cell}, host='results-hub-service.default.svc.cluster.local')\n"
@@ -88,4 +88,3 @@ def add_code_to_all_files(directory, track_list_path):
     for filename in os.listdir(directory):
         filepath = os.path.join(directory, filename)
         process_file(filepath, track_list_path)
-

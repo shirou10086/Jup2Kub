@@ -5,7 +5,7 @@ import sys
 import re
 import pkgutil
 from isort import place_module
-import shutil  
+import shutil
 import glob
 
 #python file for spliting notebook writen in python to different python files
@@ -100,14 +100,14 @@ def copy_resultshub_files(source_directory, target_directory):
     """
     # Ensure the target directory exists
     os.makedirs(target_directory, exist_ok=True)
-    
+
     # Iterate over all files in the source directory
     for file_path in glob.glob(os.path.join(source_directory, '*')):
         # Define the target file path
         target_file_path = os.path.join(target_directory, os.path.basename(file_path))
         # Copy the file to the target directory
         shutil.copy2(file_path, target_file_path)
-    
+
     print(f"All files from {source_directory} have been copied to {target_directory}")
 
 def process_notebook(notebook_path, output_directory):
@@ -118,12 +118,17 @@ def process_notebook(notebook_path, output_directory):
     installed_packages = get_installed_packages()
     versioned_dependencies = map_dependencies_to_versions(dependencies, installed_packages)
 
+    # make sure check matplotlib
+    if "matplotlib" not in ''.join(versioned_dependencies).lower():
+        print("matplotlib is not installed. Adding matplotlib to requirements.")
+        versioned_dependencies.add("matplotlib")
+
     save_cells_to_files(nb, output_directory, dependencies)
     save_requirements(versioned_dependencies, output_directory)
-    
+
     # Add this line to copy files from ./resultshub to ./example/output
-    os.makedirs(output_directory, exist_ok=True)
-    copy_resultshub_files('./resultshub_python_client', output_directory)
+    copy_resultshub_files('./resultshub', output_directory)
+
 '''
 # Example usage: python split_notebook_python.py
 notebook_path = './example/iris.ipynb'

@@ -1,5 +1,5 @@
 numpy
-protobuf
-pandas==1.5.3
-grpcio
 grpcio-tools
+grpcio
+protobuf
+matplotlib

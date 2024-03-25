@@ -1,5 +1,5 @@
 
-    FROM python:3.10
+    FROM python:3.12
     WORKDIR /app
     COPY cell-1.py /app
     COPY ResultsHub.py /app
