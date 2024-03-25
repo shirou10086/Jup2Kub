@@ -1,6 +1,6 @@
-import pandas as pd
 import matplotlib.pyplot as plt
 from io import StringIO
+import pandas as pd
 
 
 # create data
@@ -39,10 +39,3 @@ sepal_length,sepal_width,petal_length,petal_width,species
 """
 
 
-
-# Upload tracked variables to ResultsHub
-import ResultsHub as rh
-submission = rh.ResultsHubSubmission(cell_number=1, host='results-hub-service.default.svc.cluster.local')
-submission.addVar('data', locals().get('data', None))
-submission.submit()
-print(f'Submission Success for cell {cell_number}.')
