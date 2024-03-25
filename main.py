@@ -1,5 +1,5 @@
 import sys
-import os  # 确保导入 os
+import os
 import subprocess
 from splitnotebook import process_notebook
 from py2docker import create_dockerfile, build_docker_image
@@ -22,7 +22,7 @@ def main(notebook_path, output_dir, dockerhub_username, dockerhub_repository):
     
     # 正确设置 dockerfiles_path
     dockerfiles_path = os.path.join(output_dir, "docker")
-    python_version = py2docker.get_python_version() # 示例 Python 版本, 根据需要调整
+    python_version = py2docker.get_python_version()
     
     # 确保 dockerfiles 目录存在
     os.makedirs(dockerfiles_path, exist_ok=True)
@@ -32,10 +32,10 @@ def main(notebook_path, output_dir, dockerhub_username, dockerhub_repository):
         if file.endswith('.py') and file.startswith('cell_'):
             # 创建 Dockerfile 并构建镜像
             dockerfile_path = create_dockerfile(file, 'requirements.txt', dockerfiles_path, python_version)
-            image_tag = f"{dockerhub_username}/{dockerhub_repository}:{file.split('.')[0]}"
-            build_docker_image(dockerfile_path, image_tag, output_dir)
+            image_name_tag = f"{dockerhub_username}/{dockerhub_repository}:{file.split('.')[0]}"
+            build_docker_image(dockerfile_path, image_name_tag, output_dir)
             # Step 3: 推送到 Docker Hub
-            push_to_docker_hub(image_tag)
+            push_to_docker_hub(image_name_tag)
 
 if __name__ == '__main__':
     notebook_path = sys.argv[1] if len(sys.argv) > 1 else './example/iris.ipynb'
