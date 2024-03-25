@@ -26,7 +26,7 @@ class VariableTracker(ast.NodeVisitor):
 
 def process_file(filepath, track_list_path):
     # 匹配只遵循 "cell_<number>.py" 命名约定的文件
-    if not re.match(r'cell_\d+\.py$', os.path.basename(filepath)):
+    if not re.match(r'cell-\d+\.py$', os.path.basename(filepath)):
         return
 
     with open(filepath, 'r') as file:
@@ -35,7 +35,7 @@ def process_file(filepath, track_list_path):
     tree = ast.parse(file_content)
     tracker = VariableTracker()
     tracker.visit(tree)
-    cell_number = int(re.search(r'cell_(\d+)\.py$', os.path.basename(filepath)).group(1))
+    cell_number = int(re.search(r'cell-(\d+)\.py$', os.path.basename(filepath)).group(1))
 
     # 准备提交代码
     submit_code = "\n# SUBMIT CODE START\n"
@@ -89,6 +89,3 @@ def add_code_to_all_files(directory, track_list_path):
         filepath = os.path.join(directory, filename)
         process_file(filepath, track_list_path)
 
-directory_path = './example/output'  # Update to your directory path
-track_list_path = './variable_track_list.txt'  # Path for variable tracking list
-add_code_to_all_files(directory_path, track_list_path)

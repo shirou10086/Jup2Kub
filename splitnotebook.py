@@ -46,11 +46,9 @@ def save_cells_to_files(notebook, output_directory, dependencies):
     dependencies_block = '\n'.join(dependencies) + '\n\n'
 
     valid_cell_index = 0
-    existing_files = os.listdir(output_directory)
-    valid_cell_index = len(existing_files)
     for cell in notebook.cells:
         if cell.cell_type == 'code' and cell.source.strip():
-            cell_file_path = os.path.join(output_directory, f"cell_{valid_cell_index}.py")
+            cell_file_path = os.path.join(output_directory, f"cell-{valid_cell_index}.py")
             with open(cell_file_path, 'w', encoding='utf-8') as cell_file:
                 cell_file.write(dependencies_block + cell.source)
             valid_cell_index += 1
@@ -99,10 +97,6 @@ def save_requirements(dependencies, output_directory):
 def copy_resultshub_files(source_directory, target_directory):
     """
     Copies all files from the source directory to the target directory.
-
-    Parameters:
-    - source_directory: The path of the source directory.
-    - target_directory: The path of the target directory.
     """
     # Ensure the target directory exists
     os.makedirs(target_directory, exist_ok=True)
@@ -128,7 +122,8 @@ def process_notebook(notebook_path, output_directory):
     save_requirements(versioned_dependencies, output_directory)
     
     # Add this line to copy files from ./resultshub to ./example/output
-    copy_resultshub_files('./resultshub', output_directory)
+    os.makedirs(output_directory, exist_ok=True)
+    copy_resultshub_files('./resultshub_python_client', output_directory)
 '''
 # Example usage: python split_notebook_python.py
 notebook_path = './example/iris.ipynb'

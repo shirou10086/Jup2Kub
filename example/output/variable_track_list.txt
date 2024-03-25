@@ -1,5 +1,0 @@
-{
-    "submission": 3,
-    "data": 3,
-    "iris_data": 3
-}
