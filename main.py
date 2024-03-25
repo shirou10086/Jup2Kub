@@ -7,6 +7,7 @@ from py2docker import create_dockerfile, build_docker_image
 from deploymentUtils import *
 import py2docker
 import importlib.util
+import time
 
 def push_to_docker_hub(image_tag):
     """
@@ -85,6 +86,7 @@ def main(notebook_path, output_dir, dockerhub_username, dockerhub_repository, im
 
     # deploy ResultsHub
     deploy_resultsHub_to_statefulset(pvc_name, namespace)
+    time.sleep(3) # short sleep waiting results hub to be running
 
     # STEP 6: Deploy the cell jobs
     for image_tag in job_info_list:
@@ -95,7 +97,7 @@ if __name__ == '__main__':
     skip_dockerization = True if len(sys.argv) > 1 and sys.argv[1] == "skip" else False
     notebook_path = sys.argv[2] if len(sys.argv) > 2 else './example/iris.ipynb'
     output_dir = sys.argv[3] if len(sys.argv) > 3 else './execution'
-    dockerhub_username = sys.argv[4] if len(sys.argv) > 4 else "Shirou10086"  # Default Docker Hub username
+    dockerhub_username = sys.argv[4] if len(sys.argv) > 4 else "yizhuoliang"  # Default Docker Hub username
     dockerhub_repository = sys.argv[5] if len(sys.argv) > 5 else "jup2kub"  # Default Docker Hub repository
 
     main(notebook_path, output_dir, dockerhub_username, dockerhub_repository, os.path.join(output_dir, "image_list.txt"))

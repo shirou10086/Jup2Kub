@@ -126,8 +126,8 @@ def process_notebook(notebook_path, output_directory):
     save_cells_to_files(nb, output_directory, dependencies)
     save_requirements(versioned_dependencies, output_directory)
 
-    # Add this line to copy files from ./resultshub to ./example/output
-    copy_resultshub_files('./resultshub', output_directory)
+    os.makedirs(output_directory, exist_ok=True)
+    copy_resultshub_files('./resultshub_python_client', output_directory)
 
 '''
 # Example usage: python split_notebook_python.py

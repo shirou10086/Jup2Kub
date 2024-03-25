@@ -57,7 +57,7 @@ def process_file(filepath, track_list_path):
 
     # 准备获取代码
     fetch_code = "# FETCH CODE START\n"
-    fetch_code +="import ResultsHub as rh"
+    fetch_code +="import ResultsHub as rh\n"
     for var, update_cell in variable_track_list.items():
         if update_cell < cell_number:
             fetch_code += f"{var} = rh.fetchVarResult('{var}', varAncestorCell={update_cell}, host='results-hub-service.default.svc.cluster.local')\n"
