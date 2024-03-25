@@ -1,6 +1,8 @@
+iris_data = rh.fetchVarResult('iris_data', varAncestorCell=2, host='results-hub-service.default.svc.cluster.local')
+submission = rh.fetchVarResult('submission', varAncestorCell=3, host='results-hub-service.default.svc.cluster.local')
 import matplotlib.pyplot as plt
-import pandas as pd
 from io import StringIO
+import pandas as pd
 
 
 # create data
@@ -42,14 +44,15 @@ sepal_length,sepal_width,petal_length,petal_width,species
 
 # Upload tracked variables to ResultsHub
 import ResultsHub as rh
-submission = rh.ResultsHubSubmission(cell_number=1, host='results-hub-service.default.svc.cluster.local')
+submission = rh.ResultsHubSubmission(cell_number=10, host='results-hub-service.default.svc.cluster.local')
 submission.addVar('data', locals().get('data', None))
 submission.submit()
 print(f'Submission Success for cell {cell_number}.')
 
 # Upload tracked variables to ResultsHub
 import ResultsHub as rh
-submission = rh.ResultsHubSubmission(cell_number=1, host='results-hub-service.default.svc.cluster.local')
+submission = rh.ResultsHubSubmission(cell_number=10, host='results-hub-service.default.svc.cluster.local')
+submission.addVar('iris_data', locals().get('iris_data', None))
 submission.addVar('data', locals().get('data', None))
 submission.submit()
 print(f'Submission Success for cell {cell_number}.')

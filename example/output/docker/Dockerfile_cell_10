@@ -1,11 +1,11 @@
 
     FROM python:3.12
     WORKDIR /app
-    COPY cell_0.py /app
+    COPY cell_10.py /app
     COPY ResultsHub.py /app
     COPY J2kResultsHub_pb2.py /app
     COPY J2kResultsHub_pb2_grpc.py /app
     COPY requirements.txt /app
     RUN pip install --ignore-installed -r requirements.txt  # Add the --ignore-installed flag
-    CMD ["python", "/app/cell_0.py"]
+    CMD ["python", "/app/cell_10.py"]
     
