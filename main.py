@@ -8,6 +8,8 @@ from deploymentUtils import *
 import py2docker
 import importlib.util
 import time
+from concurrent.futures import ThreadPoolExecutor, as_completed
+
 
 def push_to_docker_hub(image_tag):
     """
@@ -19,6 +21,16 @@ def push_to_docker_hub(image_tag):
         print(f"Successfully pushed {image_tag} to Docker Hub.")
     except subprocess.CalledProcessError as e:
         print(f"Failed to push {image_tag} to Docker Hub: {e}")
+def dockerize_and_push(filename, dockerfiles_path, python_version, output_dir, dockerhub_username, dockerhub_repository):
+    """
+    packs the functions for create Dockerfile, build image, and push to Docker Hub.
+    one function in one thread.
+    """
+    dockerfile_path = create_dockerfile(filename, 'requirements.txt', dockerfiles_path, python_version)
+    image_name_tag = f"{dockerhub_username}/{dockerhub_repository}:{filename.split('.')[0]}"
+    build_docker_image(dockerfile_path, image_name_tag, output_dir)
+    push_to_docker_hub(image_name_tag)
+    return (f"{dockerhub_username}/{dockerhub_repository}", filename.split('.')[0])
 
 def main(notebook_path, output_dir, dockerhub_username, dockerhub_repository, image_list_path):
 
@@ -47,20 +59,16 @@ def main(notebook_path, output_dir, dockerhub_username, dockerhub_repository, im
         # STEP 3: Dockerize the Python files
         dockerfiles_path = os.path.join(output_dir, "docker")
         python_version = py2docker.get_python_version()
-        # make sure dockerfile output dir exists
         os.makedirs(dockerfiles_path, exist_ok=True)
 
-        # Iterate thru the processed files, create docker images, and upload to Docker Hub
-        for filename in os.listdir(output_dir):
-            if filename.endswith('.py') and filename.startswith('cell-'):
-                # generate dockerfile and dockerize
-                dockerfile_path = create_dockerfile(filename, 'requirements.txt', dockerfiles_path, python_version)
-                image_name_tag = f"{dockerhub_username}/{dockerhub_repository}:{filename.split('.')[0]}"
-                build_docker_image(dockerfile_path, image_name_tag, output_dir)
-                # push to Docker Hub
-                push_to_docker_hub(image_name_tag)
-                # add to the list
-                job_info_list.append((f"{dockerhub_username}/{dockerhub_repository}", filename.split('.')[0]))
+        with ThreadPoolExecutor(max_workers=4) as executor:  # max_worker default set to 4
+            futures = [executor.submit(dockerize_and_push, filename, dockerfiles_path, python_version, output_dir, dockerhub_username, dockerhub_repository)
+                       for filename in os.listdir(output_dir)
+                       if filename.endswith('.py') and filename.startswith('cell-')]
+
+            for future in futures:
+                image_tag = future.result()
+                job_info_list.append(image_tag)
 
     # # STEP 4: Makesure cleanup_info.json exists
     # cleanup_info_filename = "cleanup_info.txt"
@@ -97,7 +105,7 @@ if __name__ == '__main__':
     skip_dockerization = True if len(sys.argv) > 1 and sys.argv[1] == "skip" else False
     notebook_path = sys.argv[2] if len(sys.argv) > 2 else './example/iris.ipynb'
     output_dir = sys.argv[3] if len(sys.argv) > 3 else './execution'
-    dockerhub_username = sys.argv[4] if len(sys.argv) > 4 else "yizhuoliang"  # Default Docker Hub username
+    dockerhub_username = sys.argv[4] if len(sys.argv) > 4 else "shirou10086"  # Default Docker Hub username
     dockerhub_repository = sys.argv[5] if len(sys.argv) > 5 else "jup2kub"  # Default Docker Hub repository
 
     main(notebook_path, output_dir, dockerhub_username, dockerhub_repository, os.path.join(output_dir, "image_list.txt"))

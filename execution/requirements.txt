@@ -1,5 +1,5 @@
-grpcio
 numpy
-protobuf
-grpcio-tools
 matplotlib
+grpcio
+grpcio-tools
+protobuf

@@ -32,6 +32,7 @@ def build_docker_image(dockerfile_path, image_tag, context_path):
         subprocess.run(["docker", "build", "-f", dockerfile_path, "-t", image_tag, context_path], check=True)
     except subprocess.CalledProcessError as e:
         print(f"An standard libray been included in requirements.txt while building the Docker image: {e}")
+
 '''
 # an example of use local python version create docker images
 #use this by : "python py2docker.py" then type the cell count number
