@@ -9,6 +9,8 @@ import py2docker
 import importlib.util
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
+import re
+
 
 
 def push_to_docker_hub(image_tag):
@@ -61,12 +63,12 @@ def main(notebook_path, output_dir, dockerhub_username, dockerhub_repository, im
         python_version = py2docker.get_python_version()
         os.makedirs(dockerfiles_path, exist_ok=True)
 
-        with ThreadPoolExecutor(max_workers=4) as executor:  # max_worker default set to 4
+        with ThreadPoolExecutor(max_workers=4) as executor:  # max_worker默认设置为4
             futures = [executor.submit(dockerize_and_push, filename, dockerfiles_path, python_version, output_dir, dockerhub_username, dockerhub_repository)
                        for filename in os.listdir(output_dir)
-                       if filename.endswith('.py') and filename.startswith('cell-')]
+                       if re.match(r'cell\d+\.py$', filename)]  # 更新匹配逻辑
 
-            for future in futures:
+            for future in as_completed(futures):
                 image_tag = future.result()
                 job_info_list.append(image_tag)
 

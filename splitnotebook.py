@@ -1,29 +1,26 @@
+import ast
 import nbformat
 import os
 import subprocess
 import sys
-import re
-import pkgutil
-from isort import place_module
 import shutil
 import glob
 
-#python file for spliting notebook writen in python to different python files
+def extract_imports_from_code(code):
+    tree = ast.parse(code)
+    top_level_imports = set()
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Import):
+            for name in node.names:
+                top_level_imports.add(name.name.split('.')[0])
+        elif isinstance(node, ast.ImportFrom):
+            if node.module is not None:
+                top_level_imports.add(node.module.split('.')[0])
+    return top_level_imports
 
-def get_python_version():
-    # Getting the current Python version
-    version = sys.version_info
-    return f"{version.major}.{version.minor}.{version.micro}"
 
-def get_installed_packages():
-    result = subprocess.run(["pip", "freeze"], capture_output=True, text=True)
-    return result.stdout if result.returncode == 0 else ""
-
-def is_standard_library_module(module_name):
-    if sys.version_info >= (3, 10):
-        return module_name in sys.stdlib_module_names
-    else:
-        return place_module(module_name)=='STDLIB'
+def is_standard_library(module_name):
+    return module_name in sys.stdlib_module_names
 
 def extract_imports_and_files(notebook):
     imports = set()
@@ -31,9 +28,10 @@ def extract_imports_and_files(notebook):
 
     for cell in notebook.cells:
         if cell.cell_type == 'code':
+            cell_imports = extract_imports_from_code(cell.source)
+            imports.update(cell_imports)
+
             for line in cell.source.split('\n'):
-                if line.startswith('import ') or line.startswith('from '):
-                    imports.add(line.strip())
                 if 'open(' in line or 'read_csv(' in line or 'read_excel(' in line:
                     file_path = line.split('(')[1].split(')')[0].replace("'", "").replace('"', '').strip()
                     if os.path.isfile(file_path):
@@ -41,49 +39,30 @@ def extract_imports_and_files(notebook):
 
     return imports, files
 
-def save_cells_to_files(notebook, output_directory, dependencies):
+def filter_non_standard_libraries(imports):
+    filtered_imports = {imp for imp in imports if not is_standard_library(imp)}
+    return filtered_imports
+
+def save_cells_to_files(notebook, output_directory):
     os.makedirs(output_directory, exist_ok=True)
-    dependencies_block = '\n'.join(dependencies) + '\n\n'
 
-    valid_cell_index = 0
+    # 开始索引从1开始，而不是0
+    valid_cell_index = 1
     for cell in notebook.cells:
-        if cell.cell_type == 'code' and cell.source.strip():
-            cell_file_path = os.path.join(output_directory, f"cell-{valid_cell_index}.py")
+        if cell.cell_type == 'code' and cell.source.strip():  # 确保单元格类型为代码且非空
+            # 文件名使用1开始的索引
+            cell_file_path = os.path.join(output_directory, f"cell{valid_cell_index}.py")
             with open(cell_file_path, 'w', encoding='utf-8') as cell_file:
-                cell_file.write(dependencies_block + cell.source)
-            valid_cell_index += 1
+                cell_file.write(cell.source)  # 直接写入源代码
+            valid_cell_index += 1  # 更新文件名索引
 
-    print(f"{valid_cell_index} non-empty cells have been saved to separate files in {output_directory}, with dependencies included.")
+    print(f"{valid_cell_index - 1} non-empty code cells have been saved to separate files in '{output_directory}'.")
 
-def get_environment_info():
-    result = subprocess.run(["pip", "freeze"], capture_output=True, text=True)
-    return result.stdout if result.returncode == 0 else "Error capturing environment info"
 
-def map_dependencies_to_versions(dependencies, installed_packages):
-    versioned_dependencies = set()
-
-    for dep in dependencies:
-        # Extract the package name before the first dot (if present)
-        split_dep = dep.split()
-        if len(split_dep) >= 2:
-            package_name = split_dep[1] if 'import ' in dep else split_dep[2]
-            package_name = package_name.split('.')[0]  # Get the part before the first dot
-
-            # Check if the package is a standard library module
-            if not is_standard_library_module(package_name):
-                # Search for a matching version in installed packages
-                regex = re.compile(rf"{package_name}==[\d\.]+", re.IGNORECASE)
-                matches = regex.findall(installed_packages)
-                if matches:
-                    versioned_dependencies.add(matches[0])
-                else:
-                    print(f"Warning: Version for '{package_name}' not found.")
-
-    return versioned_dependencies
 
 def save_requirements(dependencies, output_directory):
-    # Append additional packages to the dependencies set
-    additional_packages = {'grpcio', 'grpcio-tools', 'protobuf', 'numpy'}
+    # Ensure these libraries are always included
+    additional_packages = {'grpcio', 'grpcio-tools', 'protobuf'}
     dependencies.update(additional_packages)
 
     requirements_content = '\n'.join(dependencies)
@@ -92,46 +71,20 @@ def save_requirements(dependencies, output_directory):
         file.write(requirements_content)
     print(f"Requirements saved to {requirements_path}")
 
-
-
 def copy_resultshub_files(source_directory, target_directory):
-    """
-    Copies all files from the source directory to the target directory.
-    """
-    # Ensure the target directory exists
     os.makedirs(target_directory, exist_ok=True)
-
-    # Iterate over all files in the source directory
     for file_path in glob.glob(os.path.join(source_directory, '*')):
-        # Define the target file path
         target_file_path = os.path.join(target_directory, os.path.basename(file_path))
-        # Copy the file to the target directory
         shutil.copy2(file_path, target_file_path)
-
     print(f"All files from {source_directory} have been copied to {target_directory}")
 
 def process_notebook(notebook_path, output_directory):
     with open(notebook_path, 'r', encoding='utf-8') as f:
         nb = nbformat.read(f, as_version=4)
 
-    dependencies, file_paths = extract_imports_and_files(nb)
-    installed_packages = get_installed_packages()
-    versioned_dependencies = map_dependencies_to_versions(dependencies, installed_packages)
-
-    # make sure check matplotlib
-    if "matplotlib" not in ''.join(versioned_dependencies).lower():
-        print("matplotlib is not installed. Adding matplotlib to requirements.")
-        versioned_dependencies.add("matplotlib")
-
-    save_cells_to_files(nb, output_directory, dependencies)
-    save_requirements(versioned_dependencies, output_directory)
-
-    os.makedirs(output_directory, exist_ok=True)
+    dependencies, _ = extract_imports_and_files(nb)
+    filtered_dependencies = filter_non_standard_libraries(dependencies)
+    save_cells_to_files(nb, output_directory)
+    save_requirements(filtered_dependencies, output_directory)
+    # Assuming resultshub_python_client directory exists and needs copying
     copy_resultshub_files('./resultshub_python_client', output_directory)
-
-'''
-# Example usage: python split_notebook_python.py
-notebook_path = './example/iris.ipynb'
-output_directory = './example/output'
-process_notebook(notebook_path, output_directory)
-'''

@@ -2,10 +2,6 @@
 import ResultsHub as rh
 # FETCH CODE END
 
-import pandas as pd
-from io import StringIO
-import matplotlib.pyplot as plt
-
 
 # create data
 data = """
@@ -46,8 +42,8 @@ sepal_length,sepal_width,petal_length,petal_width,species
 
 
 # SUBMIT CODE START
-submission = rh.ResultsHubSubmission(cell_number=1, host='results-hub-service.default.svc.cluster.local')
+submission = rh.ResultsHubSubmission(cell_number=2, host='results-hub-service.default.svc.cluster.local')
 submission.addVar('data', locals().get('data', None))
 submission.submit()
-print('Submission Success for cell 1.')
+print('Submission Success for cell 2.')
 # SUBMIT CODE END

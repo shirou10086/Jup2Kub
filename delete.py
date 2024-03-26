@@ -6,7 +6,7 @@ def delete_statefulset_resources(name, count):
     apps_v1 = client.AppsV1Api()
 
     for i in range(count + 1):
-        resource_name = f"{name}-{i}"
+        resource_name = f"{name}{i}"
 
         # delete StatefulSet
         try:
@@ -71,7 +71,7 @@ def main():
     name = "cell"  # StatefulSet basic name
     count = int(input("Enter the number x to delete cells from 0 to x: "))
     delete_statefulset_resources(name, count)
-    output_dir = './example/output'
+    output_dir = './execution'
     docker_images = get_docker_images()
 
     for file in os.listdir(output_dir):

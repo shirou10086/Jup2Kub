@@ -44,7 +44,7 @@ python_version = get_python_version()
 os.makedirs(dockerfiles_path, exist_ok=True)
 
 for file in os.listdir(output_dir):
-    if file.endswith('.py') and file.startswith('cell-'):
+    if file.endswith('.py') and file.startswith('cell'):
         dockerfile_path = create_dockerfile(file, 'requirements.txt', dockerfiles_path, python_version)
         build_docker_image(dockerfile_path, f"{file.split('.')[0]}", output_dir)
 '''

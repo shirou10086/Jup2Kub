@@ -1,5 +1,5 @@
-numpy
-matplotlib
 grpcio
 grpcio-tools
+matplotlib
+pandas
 protobuf
