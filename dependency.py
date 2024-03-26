@@ -2,7 +2,9 @@ import ast
 import os
 import json
 import re
-
+'''
+this file keep track of all dependencies of the entire notebook edit the code in ./exectuion/cellx.py , records the dependencies in./execution/variable_track_list.txt
+'''
 class VariableTracker(ast.NodeVisitor):
     def __init__(self):
         super().__init__()
@@ -25,7 +27,7 @@ class VariableTracker(ast.NodeVisitor):
         self.generic_visit(node)
 
 def process_file(filepath, track_list_path):
-    # 匹配只遵循 "cell_<number>.py" 命名约定的文件
+    # matches the cellx.py in execution folder
     if not re.match(r'cell\d+\.py$', os.path.basename(filepath)):
         return
 
@@ -37,7 +39,7 @@ def process_file(filepath, track_list_path):
     tracker.visit(tree)
     cell_number = int(re.search(r'cell(\d+)\.py$', os.path.basename(filepath)).group(1))
 
-    # 准备提交代码
+    # submit the code
     submit_code = "\n# SUBMIT CODE START\n"
     submit_code += f"submission = rh.ResultsHubSubmission(cell_number={cell_number}, host='results-hub-service.default.svc.cluster.local')\n"
     for var in tracker.defined_vars:
@@ -48,14 +50,14 @@ def process_file(filepath, track_list_path):
     submit_code += f"print('Submission Success for cell {cell_number}.')\n"
     submit_code += "# SUBMIT CODE END\n"
 
-    # 读取变量跟踪列表
+    # read the variable_track_list
     if os.path.exists(track_list_path):
         with open(track_list_path, 'r') as file:
             variable_track_list = json.load(file)
     else:
         variable_track_list = {}
 
-    # 准备获取代码
+    # fetch the code here
     fetch_code = "# FETCH CODE START\n"
     fetch_code +="import ResultsHub as rh\n"
     for var, update_cell in variable_track_list.items():
@@ -63,15 +65,15 @@ def process_file(filepath, track_list_path):
             fetch_code += f"{var} = rh.fetchVarResult('{var}', varAncestorCell={update_cell}, host='results-hub-service.default.svc.cluster.local')\n"
     fetch_code += "# FETCH CODE END\n"
 
-    # 更新变量跟踪列表
+    # update the tracklist
     for var in tracker.defined_vars:
         variable_track_list[var] = cell_number
 
     with open(track_list_path, 'w') as file:
         json.dump(variable_track_list, file, indent=4)
 
-    # 将更新后的内容写回文件
-    # 查找并替换或添加提交和获取代码段
+
+    # keep track of the fetch and submit codes
     pattern_submit = re.compile(r"# SUBMIT CODE START.*?# SUBMIT CODE END", re.DOTALL)
     pattern_fetch = re.compile(r"# FETCH CODE START.*?# FETCH CODE END", re.DOTALL)
     if pattern_submit.search(file_content) and pattern_fetch.search(file_content):

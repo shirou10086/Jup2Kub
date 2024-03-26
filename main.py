@@ -11,7 +11,9 @@ import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import re
 
-
+'''
+This file packs all functions in the project
+'''
 
 def push_to_docker_hub(image_tag):
     """

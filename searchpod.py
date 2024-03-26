@@ -15,13 +15,13 @@ def find_pod_by_pattern(pattern):
                 return pod.split()[0]
 
     except subprocess.CalledProcessError as e:
-        print(f"执行命令出错: {e}")
+        print(f"processError: {e}")
         return None
 
 # a demo of how to use:
 pod_name_pattern = "pod-0-.*"
 pod_name = find_pod_by_pattern(pod_name_pattern)
 if pod_name:
-    print(f"找到的 Pod 名称: {pod_name}")
+    print(f"foundPod: {pod_name}")
 else:
-    print("未找到符合模式的 Pod")
+    print("Unable to found Pod")
