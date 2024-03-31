@@ -76,7 +76,7 @@ def main(skip_dockerization, notebook_path, output_dir, dockerhub_username, dock
         python_version = py2docker.get_python_version()
         os.makedirs(dockerfiles_path, exist_ok=True)
 
-        with ThreadPoolExecutor(max_workers=4) as executor:
+        with ThreadPoolExecutor(max_workers=n_docker_worker) as executor:
             futures = [executor.submit(dockerize_and_push, filename, dockerfiles_path, python_version, output_dir, dockerhub_username, dockerhub_repository)
                        for filename in os.listdir(output_dir)
                        if re.match(r'cell\d+\.py$', filename)]  # 更新匹配逻辑
