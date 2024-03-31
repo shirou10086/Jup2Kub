@@ -1,4 +1,5 @@
 grpcio
 protobuf
-import os
+matplotlib
+pandas
 grpcio-tools
