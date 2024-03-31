@@ -3,6 +3,10 @@ import ResultsHub as rh
 data = rh.fetchVarResult('data', varAncestorCell=2, host='results-hub-service.default.svc.cluster.local')
 # FETCH CODE END
 
+import matplotlib.pyplot as plt
+from io import StringIO
+import pandas as pd
+
 #read and process
 iris_data = pd.read_csv(StringIO(data))
 

@@ -44,22 +44,41 @@ def extract_imports_and_files(notebook):
 def filter_non_standard_libraries(imports):
     filtered_imports = {imp for imp in imports if not is_standard_library(imp)}
     return filtered_imports
-
-def save_cells_to_files(notebook, output_directory):
+def save_cells_to_files(notebook, output_directory, all_imports):
     os.makedirs(output_directory, exist_ok=True)
 
-    # starting cell index from 1
     valid_cell_index = 1
     for cell in notebook.cells:
-        if cell.cell_type == 'code' and cell.source.strip():  # make sure the code box is unempty
+        if cell.cell_type == 'code' and cell.source.strip():
             cell_file_path = os.path.join(output_directory, f"cell{valid_cell_index}.py")
+
+            # exclude the imports that already in the cell
+            imports_to_add = [imp for imp in all_imports if imp not in cell.source]
+
             with open(cell_file_path, 'w', encoding='utf-8') as cell_file:
-                cell_file.write(cell.source)  # write scource code
-            valid_cell_index += 1  # update the cellindex
+                # if not included, include there
+                if imports_to_add:
+                    cell_file.write('\n'.join(imports_to_add) + '\n\n')
+                cell_file.write(cell.source)  # 然后写入单元格的源代码
 
-    print(f"{valid_cell_index - 1} non-empty code cells have been saved to separate files in '{output_directory}'.")
+            valid_cell_index += 1
 
 
+
+
+def extract_full_import_statements(code):
+    """
+    Extracts and returns a set of full import statements from a given piece of code.
+    """
+    tree = ast.parse(code)
+    import_statements = set()
+
+    for node in ast.walk(tree):
+        if isinstance(node, (ast.Import, ast.ImportFrom)):
+            # Convert the node back to a string of code
+            import_statements.add(ast.unparse(node))
+
+    return import_statements
 
 def save_requirements(dependencies, output_directory):
     # Ensure these libraries are always included
@@ -83,9 +102,14 @@ def process_notebook(notebook_path, output_directory):
     with open(notebook_path, 'r', encoding='utf-8') as f:
         nb = nbformat.read(f, as_version=4)
 
-    dependencies, _ = extract_imports_and_files(nb)
-    filtered_dependencies = filter_non_standard_libraries(dependencies)
-    save_cells_to_files(nb, output_directory)
-    save_requirements(filtered_dependencies, output_directory)
-    # Assuming resultshub_python_client directory exists and needs copying
+    all_imports = set()
+    for cell in nb.cells:
+        if cell.cell_type == 'code':
+            # use extract_full_import_statements to extract the statements
+            cell_imports = extract_full_import_statements(cell.source)
+            all_imports.update(cell_imports)
+
+    dependencies = filter_non_standard_libraries(all_imports)
+    save_cells_to_files(nb, output_directory, all_imports)
+    save_requirements(dependencies, output_directory)
     copy_resultshub_files('./resultshub_python_client', output_directory)
