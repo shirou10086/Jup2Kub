@@ -60,4 +60,6 @@ def generate_file_access_report(directory_path: str="./execution", report_file_p
 
     with open(report_file_path, 'w', encoding='utf-8') as report_file:
         for filename in accessed_files:
-            report_file.write(f"{filename}\n")
+            # os.path.splitext get file name
+            base_name = os.path.splitext(filename)[0]
+            report_file.write(f"{base_name}\n")

@@ -1,6 +1,4 @@
 grpcio
-grpcio-tools
-import matplotlib.pyplot as plt
 protobuf
-from io import StringIO
-import pandas as pd
+import os
+grpcio-tools

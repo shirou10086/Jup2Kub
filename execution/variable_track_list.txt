@@ -1,4 +1,5 @@
 {
-    "data": 2,
-    "iris_data": 3
+    "filename": 1,
+    "content": 1,
+    "file": 2
 }
