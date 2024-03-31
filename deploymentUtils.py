@@ -162,6 +162,7 @@ def deploy_stateless_job(image_name, tag, namespace):
 
     image_name_no_repo = image_name.split('/', 1)[1];
     job_name = f"j2k-job-{image_name_no_repo}-{tag}" # note we remove the repo name here
+
     # Define the Job
     job = client.V1Job(
         api_version="batch/v1",
@@ -174,7 +175,6 @@ def deploy_stateless_job(image_name, tag, namespace):
                     containers=[client.V1Container(
                         name="results-hub-job-container",
                         image=f"{image_name}:{tag}",
-                        # No ports exposed, but ensures it can communicate within the cluster
                     )],
                     restart_policy="Never"  # Ensure the container exits after completion
                 )
@@ -184,7 +184,59 @@ def deploy_stateless_job(image_name, tag, namespace):
 
     try:
         api_instance.create_namespaced_job(namespace=namespace, body=job)
-        print(f"Job 'results-hub-job' created in namespace '{namespace}'.")
+        print(f"Job '{job_name}' created in namespace '{namespace}'.")
+    except ApiException as e:
+        print(f"Exception when creating Job: {e}")
+        raise
+
+def deploy_file_access_job(image_name, tag, namespace):
+    config.load_kube_config()  # Load kubeconfig
+    api_instance = client.BatchV1Api()
+
+    image_name_no_repo = image_name.split('/', 1)[1];
+    job_name = f"j2k-job-{image_name_no_repo}-{tag}" # note we remove the repo name here
+
+    # Define the job
+    job = client.V1Job(
+        api_version="batch/v1",
+        kind="Job",
+        metadata=client.V1ObjectMeta(name= job_name, namespace=namespace),
+        spec=client.V1JobSpec(
+            template=client.V1PodTemplateSpec(
+                metadata=client.V1ObjectMeta(labels={"app": job_name}),
+                spec=client.V1PodSpec(
+                    containers=[
+                        client.V1Container(
+                            name="results-hub-job-container",
+                            image=f"{image_name}:{tag}",
+                        )
+                    ],
+                    restart_policy="Never",
+                    # NOTE: under current design, all file-accessing cells are placed on the master node
+                    affinity=client.V1Affinity(
+                        node_affinity=client.V1NodeAffinity(
+                            required_during_scheduling_ignored_during_execution=client.V1NodeSelector(
+                                node_selector_terms=[
+                                    client.V1NodeSelectorTerm(
+                                        match_expressions=[
+                                            client.V1NodeSelectorRequirement(
+                                                key="node-role.kubernetes.io/master",
+                                                operator="Exists"
+                                            )
+                                        ]
+                                    )
+                                ]
+                            )
+                        )
+                    )
+                )
+            )
+        )
+    )
+
+    try:
+        api_instance.create_namespaced_job(namespace=namespace, body=job)
+        print(f"Job '{job_name}' created in namespace '{namespace}'.")
     except ApiException as e:
         print(f"Exception when creating Job: {e}")
         raise
