@@ -102,14 +102,18 @@ def process_notebook(notebook_path, output_directory):
     with open(notebook_path, 'r', encoding='utf-8') as f:
         nb = nbformat.read(f, as_version=4)
 
-    all_imports = set()
+    all_imports_statements = set()  
+    all_imports_names = set()
+
     for cell in nb.cells:
         if cell.cell_type == 'code':
-            # use extract_full_import_statements to extract the statements
-            cell_imports = extract_full_import_statements(cell.source)
-            all_imports.update(cell_imports)
+            cell_imports_statements = extract_full_import_statements(cell.source)
+            all_imports_statements.update(cell_imports_statements)
 
-    dependencies = filter_non_standard_libraries(all_imports)
-    save_cells_to_files(nb, output_directory, all_imports)
+            cell_imports_names = extract_imports_from_code(cell.source)
+            all_imports_names.update(cell_imports_names)
+
+    dependencies = filter_non_standard_libraries(all_imports_names)
+    save_cells_to_files(nb, output_directory, all_imports_statements)
     save_requirements(dependencies, output_directory)
     copy_resultshub_files('./resultshub_python_client', output_directory)
