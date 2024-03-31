@@ -44,22 +44,14 @@ def checks_file_access(called_functions: Set[str]) -> bool:
 
     return any(func in called_functions for func in file_operations)
 
-def generate_file_access_report(directory_path: str="./execution", report_file_path: str = "./execution/fileaccess.txt", file_prefix: str = "cell", file_extension: str = ".py", file_count: int = 10):
+def check_file_for_access(file_path: str) -> bool:
     """
-    Generates a report of Python files within a specified directory that access files,
-    and writes the names of these files to a text file, each on a new line.
+    Checks the specified Python file to see if it performs any file access operations.
+    Returns True if file access is detected, else False.
     """
-    accessed_files = []
+    if os.path.exists(file_path):
+        called_functions = collect_called_functions_from_file(file_path)
+        if checks_file_access(called_functions):
+            return True  # File access detected, return True
 
-    for i in range(1, file_count + 1):
-        file_path = os.path.join(directory_path, f"{file_prefix}{i}{file_extension}")
-        if os.path.exists(file_path):
-            called_functions = collect_called_functions_from_file(file_path)
-            if checks_file_access(called_functions):
-                accessed_files.append(os.path.basename(file_path))
-
-    with open(report_file_path, 'w', encoding='utf-8') as report_file:
-        for filename in accessed_files:
-            # os.path.splitext get file name
-            base_name = os.path.splitext(filename)[0]
-            report_file.write(f"{base_name}\n")
+    return False  # No file access detected, return False

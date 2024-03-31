@@ -2,9 +2,9 @@
 import ResultsHub as rh
 # FETCH CODE END
 
-import pandas as pd
-import matplotlib.pyplot as plt
 from io import StringIO
+import matplotlib.pyplot as plt
+import pandas as pd
 
 
 # create data
