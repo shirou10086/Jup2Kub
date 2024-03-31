@@ -14,7 +14,7 @@ def create_local_pv(node_name, local_path, pv_name, storage_size):
         spec=client.V1PersistentVolumeSpec(
             capacity={"storage": storage_size},
             volume_mode="Filesystem",
-            access_modes=["ReadWriteOnce"],
+            access_modes=["ReadWriteMany"], # the ResultsHub and a Job should be able to access FS simultaneously
             persistent_volume_reclaim_policy="Retain",
             local=client.V1LocalVolumeSource(path=local_path),
             node_affinity=client.V1VolumeNodeAffinity(
@@ -54,7 +54,7 @@ def create_pvc(pvc_name, storage_size, namespace):
         kind="PersistentVolumeClaim",
         metadata=client.V1ObjectMeta(name=pvc_name),
         spec=client.V1PersistentVolumeClaimSpec(
-            access_modes=["ReadWriteOnce"],
+            access_modes=["ReadWriteMany"],
             resources=client.V1ResourceRequirements(
                 requests={"storage": storage_size}
             )
@@ -167,7 +167,7 @@ def deploy_stateless_job(image_name, tag, namespace):
     job = client.V1Job(
         api_version="batch/v1",
         kind="Job",
-        metadata=client.V1ObjectMeta(name= job_name, namespace=namespace),
+        metadata=client.V1ObjectMeta(name=job_name, namespace=namespace),
         spec=client.V1JobSpec(
             template=client.V1PodTemplateSpec(
                 metadata=client.V1ObjectMeta(labels={"app": job_name}),
@@ -189,18 +189,18 @@ def deploy_stateless_job(image_name, tag, namespace):
         print(f"Exception when creating Job: {e}")
         raise
 
-def deploy_file_access_job(image_name, tag, namespace):
+def deploy_file_access_job(image_name, tag, namespace, pvc_name):
     config.load_kube_config()  # Load kubeconfig
     api_instance = client.BatchV1Api()
 
-    image_name_no_repo = image_name.split('/', 1)[1];
-    job_name = f"j2k-job-{image_name_no_repo}-{tag}" # note we remove the repo name here
+    image_name_no_repo = image_name.split('/', 1)[1]
+    job_name = f"j2k-job-{image_name_no_repo}-{tag}"  # note we remove the repo name here
 
     # Define the job
     job = client.V1Job(
         api_version="batch/v1",
         kind="Job",
-        metadata=client.V1ObjectMeta(name= job_name, namespace=namespace),
+        metadata=client.V1ObjectMeta(name=job_name, namespace=namespace),
         spec=client.V1JobSpec(
             template=client.V1PodTemplateSpec(
                 metadata=client.V1ObjectMeta(labels={"app": job_name}),
@@ -209,10 +209,23 @@ def deploy_file_access_job(image_name, tag, namespace):
                         client.V1Container(
                             name="results-hub-job-container",
                             image=f"{image_name}:{tag}",
+                            volume_mounts=[
+                                client.V1VolumeMount(
+                                    mount_path="/data",  # The path inside the container
+                                    name="storage"
+                                )
+                            ]
                         )
                     ],
                     restart_policy="Never",
-                    # NOTE: under current design, all file-accessing cells are placed on the master node
+                    volumes=[
+                        client.V1Volume(
+                            name="storage",
+                            persistent_volume_claim=client.V1PersistentVolumeClaimVolumeSource(
+                                claim_name=pvc_name
+                            )
+                        )
+                    ],
                     affinity=client.V1Affinity(
                         node_affinity=client.V1NodeAffinity(
                             required_during_scheduling_ignored_during_execution=client.V1NodeSelector(
@@ -234,6 +247,7 @@ def deploy_file_access_job(image_name, tag, namespace):
         )
     )
 
+    # Create the job
     try:
         api_instance.create_namespaced_job(namespace=namespace, body=job)
         print(f"Job '{job_name}' created in namespace '{namespace}'.")
