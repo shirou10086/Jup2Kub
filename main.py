@@ -7,12 +7,14 @@ import sys
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
+
 # J2K packages
 from dependency import add_code_to_all_files
 import py2docker
 from py2docker import build_docker_image, create_dockerfile
 from deploymentUtils import *
 from splitnotebook import process_notebook
+from checkfileaccess import generate_file_access_report
 
 '''
 This file provide a unified user interface
@@ -66,6 +68,8 @@ def main(skip_dockerization, notebook_path, output_dir, dockerhub_username, dock
         # STEP 2: Run dependency analysis
         track_list_path = os.path.join(output_dir, 'variable_track_list.txt')
         add_code_to_all_files(output_dir, track_list_path)
+        #STEP2.1: run file check analysis
+        generate_file_access_report()
 
         # STEP 3: Dockerize the Python files
         dockerfiles_path = os.path.join(output_dir, "docker")
@@ -116,7 +120,7 @@ def main(skip_dockerization, notebook_path, output_dir, dockerhub_username, dock
 if __name__ == '__main__':
     skip_dockerization = True if len(sys.argv) > 1 and sys.argv[1] == "skip" else False
     notebook_path = sys.argv[2] if len(sys.argv) > 2 else './example/iris.ipynb'
-    
+
     # Parse the configuration file
     j2k_config = load_config('J2K_CONFIG.json')
     output_dir = j2k_config['execution']['output-directory']

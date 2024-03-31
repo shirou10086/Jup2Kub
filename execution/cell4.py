@@ -4,9 +4,9 @@ data = rh.fetchVarResult('data', varAncestorCell=2, host='results-hub-service.de
 iris_data = rh.fetchVarResult('iris_data', varAncestorCell=3, host='results-hub-service.default.svc.cluster.local')
 # FETCH CODE END
 
-import matplotlib.pyplot as plt
 from io import StringIO
 import pandas as pd
+import matplotlib.pyplot as plt
 
 # visualization
 plt.scatter(iris_data['petal_length'], iris_data['petal_width'])
