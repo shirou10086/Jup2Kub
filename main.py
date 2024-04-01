@@ -115,15 +115,16 @@ def main(skip_dockerization, notebook_path, output_dir, dockerhub_username, dock
     node_name = j2k_config['results-hub']['master-node-name']
     local_path = j2k_config['results-hub']['local-pv-path']
     pv_name = j2k_config['results-hub']['pv-name']
-    storage_size = j2k_config['results-hub']['storage-size']
+    pv_storage_size = j2k_config['results-hub']['pv-storage-size']
+    pvc_storage_size = j2k_config['results-hub']['pvc-storage-size']
     pvc_name = j2k_config['results-hub']['pvc-name']
     namespace = j2k_config['results-hub']['namespace']
 
     # create pv
-    create_local_pv(node_name, local_path, pv_name, storage_size)
+    create_local_pv(node_name, local_path, pv_name, pv_storage_size)
 
     # create pvc
-    create_pvc(pvc_name, storage_size, namespace)
+    create_pvc(pvc_name, pvc_storage_size, namespace)
 
     # deploy ResultsHub
     deploy_resultsHub_to_statefulset(pvc_name, namespace)
@@ -137,7 +138,7 @@ def main(skip_dockerization, notebook_path, output_dir, dockerhub_username, dock
 
 if __name__ == '__main__':
     skip_dockerization = True if len(sys.argv) > 1 and sys.argv[1] == "skip" else False
-    notebook_path = sys.argv[2] if len(sys.argv) > 2 else './example/iris.ipynb'
+    notebook_path = sys.argv[2] if len(sys.argv) > 2 else './example/readexample.ipynb'
 
     # Parse the configuration file
     j2k_config = load_config('J2K_CONFIG.json')

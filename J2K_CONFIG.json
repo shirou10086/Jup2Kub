@@ -4,7 +4,8 @@
         "local-pv-path": "/results-hub-log",
         "pv-name": "local-pv",
         "pvc-name": "local-pvc-for-rh",
-        "storage-size": "1Gi",
+        "pv-storage-size": "6Gi",
+        "pvc-storage-size": "1Gi",
         "namespace": "default"
     },
 
