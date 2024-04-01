@@ -173,7 +173,7 @@ def deploy_stateless_job(image_name, tag, namespace):
                 metadata=client.V1ObjectMeta(labels={"app": job_name}),
                 spec=client.V1PodSpec(
                     containers=[client.V1Container(
-                        name="results-hub-job-container",
+                        name="jup2kub-job",
                         image=f"{image_name}:{tag}",
                     )],
                     restart_policy="Never"  # Ensure the container exits after completion
@@ -207,7 +207,7 @@ def deploy_file_access_job(image_name, tag, namespace, pvc_name):
                 spec=client.V1PodSpec(
                     containers=[
                         client.V1Container(
-                            name="results-hub-job-container",
+                            name="jup2kub-job",
                             image=f"{image_name}:{tag}",
                             volume_mounts=[
                                 client.V1VolumeMount(
