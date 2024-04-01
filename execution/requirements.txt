@@ -1,5 +1,0 @@
-grpcio
-pandas
-matplotlib
-grpcio-tools
-protobuf

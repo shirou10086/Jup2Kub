@@ -11,8 +11,8 @@
 
     "execution": {
         "output-directory": "./execution",
-        "dockerhub-username": "yizhuoliang",
-        "dockerhub-repo-name": "j2kcontainers",
+        "dockerhub-username": "shirou10086",
+        "dockerhub-repo-name": "jup2kub",
         "image-list-filename": "image_list.txt",
         "n-docker-worker": "4"
     }

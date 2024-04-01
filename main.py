@@ -14,7 +14,7 @@ import py2docker
 from py2docker import build_docker_image, create_dockerfile
 from deploymentUtils import *
 from splitnotebook import process_notebook
-from checkfileaccess import check_file_for_access
+from checkfileaccess import generate_file_access_report
 
 '''
 This file provide a unified user interface
@@ -44,26 +44,7 @@ def dockerize_and_push(filename, dockerfiles_path, python_version, output_dir, d
     build_docker_image(dockerfile_path, image_name_tag, output_dir)
     push_to_docker_hub(image_name_tag)
     return (f"{dockerhub_username}/{dockerhub_repository}", filename.split('.')[0])
-def process_and_dockerize_files(output_dir, dockerfiles_path, python_version, dockerhub_username, dockerhub_repository, n_docker_worker):
-    job_info_list = []
 
-    with ThreadPoolExecutor(max_workers=int(n_docker_worker)) as executor:
-        futures = []
-        for filename in os.listdir(output_dir):
-            if re.match(r'cell\d+\.py$', filename):
-                # check for every files to see the file access or not
-                file_path = os.path.join(output_dir, filename)
-                file_access_flag = check_file_for_access(file_path)
-
-                # submit here
-                future = executor.submit(dockerize_and_push, filename, dockerfiles_path, python_version, output_dir, dockerhub_username, dockerhub_repository)
-                futures.append((future, file_access_flag))
-
-        for future, file_access_flag in futures:
-            image_tag = future.result()
-            job_info_list.append((*image_tag, file_access_flag))  #add fileaccessflag as the third element
-
-    return job_info_list
 
 
 def main(skip_dockerization, notebook_path, output_dir, dockerhub_username, dockerhub_repository, image_list_path, n_docker_worker):
@@ -89,6 +70,8 @@ def main(skip_dockerization, notebook_path, output_dir, dockerhub_username, dock
         # STEP 2: Run dependency analysis
         track_list_path = os.path.join(output_dir, 'variable_track_list.txt')
         add_code_to_all_files(output_dir, track_list_path)
+        #STEP2.1: run file check analysis
+        generate_file_access_report()
 
 
         # STEP 3: Dockerize the Python files
@@ -96,7 +79,14 @@ def main(skip_dockerization, notebook_path, output_dir, dockerhub_username, dock
         python_version = py2docker.get_python_version()
         os.makedirs(dockerfiles_path, exist_ok=True)
 
-        process_and_dockerize_files(output_dir, dockerfiles_path, python_version, dockerhub_username, dockerhub_repository, n_docker_worker)
+        with ThreadPoolExecutor(max_workers=int(n_docker_worker)) as executor:
+            futures = [executor.submit(dockerize_and_push, filename, dockerfiles_path, python_version, output_dir, dockerhub_username, dockerhub_repository)
+                       for filename in os.listdir(output_dir)
+                       if re.match(r'cell\d+\.py$', filename)]  # match files here
+
+            for future in as_completed(futures):
+                image_tag = future.result()
+                job_info_list.append(image_tag)
         print("+++++++++++++++++++++++++++++++++++++++")
         for item in job_info_list:
             print(item)
