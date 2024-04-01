@@ -1,5 +1,5 @@
-protobuf
-grpcio-tools
 grpcio
-matplotlib
 pandas
+matplotlib
+grpcio-tools
+protobuf

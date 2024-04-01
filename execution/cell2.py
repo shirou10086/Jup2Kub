@@ -3,8 +3,8 @@ import ResultsHub as rh
 # FETCH CODE END
 
 from io import StringIO
-import matplotlib.pyplot as plt
 import pandas as pd
+import matplotlib.pyplot as plt
 
 
 # create data
