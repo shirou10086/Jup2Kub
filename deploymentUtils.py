@@ -211,7 +211,7 @@ def deploy_file_access_job(image_name, tag, namespace, pvc_name):
                             image=f"{image_name}:{tag}",
                             volume_mounts=[
                                 client.V1VolumeMount(
-                                    mount_path="/data",  # The path inside the container
+                                    mount_path="/app/data",  # The path inside the container
                                     name="storage"
                                 )
                             ]
