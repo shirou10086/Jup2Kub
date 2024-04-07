@@ -134,8 +134,8 @@ def main(skip_dockerization, notebook_path, output_dir, dockerhub_username, dock
     pvc_storage_size = j2k_config['jobs']['job-pvc-storage-size']
     local_path = j2k_config['jobs']['data-dir-path']
     namespace = j2k_config['jobs']['namespace']
-    create_pv(node_name, local_path, "pvForJobs", pv_storage_size)
-    create_pvc("pvcForJob", pvc_storage_size, namespace)
+    create_pv(node_name, local_path, "pvforjobs", pv_storage_size)
+    create_pvc("pvcforjob", pvc_storage_size, namespace)
 
     # deploy the jobs
     for image_tag_access in job_info_list:
