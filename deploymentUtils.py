@@ -112,7 +112,7 @@ def deploy_resultsHub_to_statefulset(pvc_name, namespace):
                             persistent_volume_claim=client.V1PersistentVolumeClaimVolumeSource(claim_name=pvc_name)
                         )
                     ],
-                    tolerations=[  # Add this tolerations section
+                    tolerations=[ # Add this toleration because we do want the master node to run cells as well
                         client.V1Toleration(
                             key="node-role.kubernetes.io/control-plane",
                             operator="Exists",
@@ -176,7 +176,14 @@ def deploy_stateless_job(image_name, tag, namespace):
                         name="jup2kub-job",
                         image=f"{image_name}:{tag}",
                     )],
-                    restart_policy="Never"  # Ensure the container exits after completion
+                    restart_policy="Never",  # Ensure the container exits after completion
+                    tolerations=[ # Add this toleration because we do want the master node to run cells as well
+                        client.V1Toleration(
+                            key="node-role.kubernetes.io/control-plane",
+                            operator="Exists",
+                            effect="NoSchedule"
+                        )
+                    ]
                 )
             )
         )
@@ -241,7 +248,14 @@ def deploy_file_access_job(image_name, tag, namespace, pvc_name):
                                 ]
                             )
                         )
-                    )
+                    ),
+                    tolerations=[ # Add this toleration because we do want the master node to run cells as well
+                        client.V1Toleration(
+                            key="node-role.kubernetes.io/control-plane",
+                            operator="Exists",
+                            effect="NoSchedule"
+                        )
+                    ]
                 )
             )
         )
