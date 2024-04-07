@@ -89,7 +89,7 @@ def deploy_resultsHub_to_statefulset(pvc_name, namespace):
             selector=client.V1LabelSelector(
                 match_labels={"app": "results-hub"}
             ),
-            service_name="results-hub",
+            service_name="results-hub-service",
             replicas=1,  # Ensure only 1 pod is created
             template=client.V1PodTemplateSpec(
                 metadata=client.V1ObjectMeta(
