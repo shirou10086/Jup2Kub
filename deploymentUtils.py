@@ -5,7 +5,7 @@ from kubernetes.client.rest import ApiException
 This file contains the function for deploying all the k8s cluster components
 '''
 
-def create_local_pv(node_name, local_path, pv_name, storage_size):
+def create_pv(node_name, local_path, pv_name, storage_size):
     # Define the PV
     pv = client.V1PersistentVolume(
         api_version="v1",
@@ -14,7 +14,7 @@ def create_local_pv(node_name, local_path, pv_name, storage_size):
         spec=client.V1PersistentVolumeSpec(
             capacity={"storage": storage_size},
             volume_mode="Filesystem",
-            access_modes=["ReadWriteMany"], # the ResultsHub and a Job should be able to access FS simultaneously
+            access_modes=["ReadWriteMany"], # We enforce the access patern constraints ourselves
             persistent_volume_reclaim_policy="Retain",
             local=client.V1LocalVolumeSource(path=local_path),
             node_affinity=client.V1VolumeNodeAffinity(

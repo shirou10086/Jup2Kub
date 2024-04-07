@@ -97,7 +97,7 @@ def main(skip_dockerization, notebook_path, output_dir, dockerhub_username, dock
             for future in as_completed(futures):
                 image_tag = future.result()
                 job_info_list.append(image_tag)
-        print("+++++++++++++++++++++++++++++++++++++++")
+        print("========== Jobs Info ==========")
         for job_info in job_info_list:
             print(f"Repository: {job_info[0]}, Tag: {job_info[1]}, File Accessed: {job_info[2]}")
 
@@ -120,10 +120,8 @@ def main(skip_dockerization, notebook_path, output_dir, dockerhub_username, dock
     pvc_name = j2k_config['results-hub']['pvc-name']
     namespace = j2k_config['results-hub']['namespace']
 
-    # create pv
-    create_local_pv(node_name, local_path, pv_name, pv_storage_size)
-
-    # create pvc
+    # create pv and pvc for ResultsHub
+    create_pv(node_name, local_path, pv_name, pv_storage_size)
     create_pvc(pvc_name, pvc_storage_size, namespace)
 
     # deploy ResultsHub
@@ -131,8 +129,20 @@ def main(skip_dockerization, notebook_path, output_dir, dockerhub_username, dock
     time.sleep(3) # short sleep waiting results hub to be running
 
     # STEP 6: Deploy the cell jobs
-    for image_tag in job_info_list:
-        deploy_stateless_job(image_name=image_tag[0], tag=image_tag[1], namespace=namespace)
+    # prepare the pv and pvcs for jobs
+    pv_storage_size = j2k_config['jobs']['jobs-pv-storage-size']
+    pvc_storage_size = j2k_config['jobs']['job-pvc-storage-size']
+    local_path = j2k_config['jobs']['data-dir-path']
+    namespace = j2k_config['jobs']['namespace']
+    create_pv(node_name, local_path, "pvForJobs", pv_storage_size)
+    create_pvc("pvcForJob", pvc_storage_size, namespace)
+
+    # deploy the jobs
+    for image_tag_access in job_info_list:
+        if image_tag_access[2]:
+            deploy_file_access_job(image_name=image_tag[0], tag=image_tag[1], namespace=namespace, pvc_name="pvcForJob")
+        else:
+            deploy_stateless_job(image_name=image_tag[0], tag=image_tag[1], namespace=namespace)
 
 
 

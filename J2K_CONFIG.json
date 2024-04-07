@@ -4,8 +4,8 @@
         "local-pv-path": "/results-hub-log",
         "pv-name": "local-pv",
         "pvc-name": "local-pvc-for-rh",
-        "pv-storage-size": "6Gi",
-        "pvc-storage-size": "1Gi",
+        "pv-storage-size": "500Mi",
+        "pvc-storage-size": "500Mi",
         "namespace": "default"
     },
 
@@ -15,5 +15,12 @@
         "dockerhub-repo-name": "jup2kub",
         "image-list-filename": "image_list.txt",
         "n-docker-worker": "4"
+    },
+
+    "jobs": {
+        "jobs-pv-storage-size": "500Mi",
+        "job-pvc-storage-size": "100Mi",
+        "data-dir-path": "/Users/coulson/Jup2Kub/example/data",
+        "namespace": "default"
     }
 }
