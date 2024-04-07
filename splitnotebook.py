@@ -59,7 +59,7 @@ def save_cells_to_files(notebook, output_directory, all_imports):
                 # if not included, include there
                 if imports_to_add:
                     cell_file.write('\n'.join(imports_to_add) + '\n\n')
-                cell_file.write(cell.source)  # 然后写入单元格的源代码
+                cell_file.write(cell.source)  #write cell from origin notebook
 
             valid_cell_index += 1
 
@@ -102,7 +102,7 @@ def process_notebook(notebook_path, output_directory):
     with open(notebook_path, 'r', encoding='utf-8') as f:
         nb = nbformat.read(f, as_version=4)
 
-    all_imports_statements = set()  
+    all_imports_statements = set()
     all_imports_names = set()
 
     for cell in nb.cells:

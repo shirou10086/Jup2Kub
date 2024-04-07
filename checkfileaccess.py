@@ -44,7 +44,8 @@ def checks_file_access(called_functions: Set[str]) -> bool:
 
     return any(func in called_functions for func in file_operations)
 
-def generate_file_access_report(directory_path: str="./execution", report_file_path: str = "./execution/fileaccess.txt", file_prefix: str = "cell", file_extension: str = ".py", file_count: int = 10):
+
+def generate_file_access_report(directory_path="./execution", report_file_path="./execution/fileaccess.txt", file_prefix="cell", file_extension=".py", file_count=10):
     """
     Generates a report of Python files within a specified directory that access files,
     and writes the names of these files to a text file, each on a new line.
@@ -60,6 +61,6 @@ def generate_file_access_report(directory_path: str="./execution", report_file_p
 
     with open(report_file_path, 'w', encoding='utf-8') as report_file:
         for filename in accessed_files:
-            # os.path.splitext get file name
+            # Use os.path.splitext to get the file name without extension
             base_name = os.path.splitext(filename)[0]
             report_file.write(f"{base_name}\n")

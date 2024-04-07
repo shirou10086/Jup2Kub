@@ -71,7 +71,13 @@ def main(skip_dockerization, notebook_path, output_dir, dockerhub_username, dock
         track_list_path = os.path.join(output_dir, 'variable_track_list.txt')
         add_code_to_all_files(output_dir, track_list_path)
         #STEP2.1: run file check analysis
-        generate_file_access_report()
+
+        generate_file_access_report(
+            j2k_config['execution']['output-directory'],
+            os.path.join(directory_path, "fileaccess.txt"),
+            "cell", ".py" , 10
+        )
+        #directory_path is output_dir, report_file_path is fileaccess.txt under output_dir
 
 
         # STEP 3: Dockerize the Python files
