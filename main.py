@@ -140,9 +140,9 @@ def main(skip_dockerization, notebook_path, output_dir, dockerhub_username, dock
     # deploy the jobs
     for image_tag_access in job_info_list:
         if image_tag_access[2]:
-            deploy_file_access_job(image_name=image_tag[0], tag=image_tag[1], namespace=namespace, pvc_name="pvcForJob")
+            deploy_file_access_job(image_name=image_tag_access[0], tag=image_tag_access[1], namespace=namespace, pvc_name="pvcForJob")
         else:
-            deploy_stateless_job(image_name=image_tag[0], tag=image_tag[1], namespace=namespace)
+            deploy_stateless_job(image_name=image_tag_access[0], tag=image_tag_access[1], namespace=namespace)
 
 
 
