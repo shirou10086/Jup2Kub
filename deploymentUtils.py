@@ -175,6 +175,7 @@ def deploy_stateless_job(image_name, tag, namespace):
                     containers=[client.V1Container(
                         name="jup2kub-job",
                         image=f"{image_name}:{tag}",
+                        image_pull_policy="Always"
                     )],
                     restart_policy="Never",  # Ensure the container exits after completion
                     tolerations=[ # Add this toleration because we do want the master node to run cells as well
@@ -221,7 +222,8 @@ def deploy_file_access_job(image_name, tag, namespace, pvc_name):
                                     mount_path="/app/data",  # The path inside the container
                                     name="storage"
                                 )
-                            ]
+                            ],
+                            image_pull_policy="Always"
                         )
                     ],
                     restart_policy="Never",
