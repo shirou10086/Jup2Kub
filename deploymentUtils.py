@@ -240,7 +240,7 @@ def deploy_file_access_job(image_name, tag, namespace, pvc_name):
                                     client.V1NodeSelectorTerm(
                                         match_expressions=[
                                             client.V1NodeSelectorRequirement(
-                                                key="node-role.kubernetes.io/master",
+                                                key="node-role.kubernetes.io/control-plane",
                                                 operator="Exists"
                                             )
                                         ]
