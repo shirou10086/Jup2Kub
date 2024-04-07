@@ -71,9 +71,10 @@ def main(skip_dockerization, notebook_path, output_dir, dockerhub_username, dock
         track_list_path = os.path.join(output_dir, 'variable_track_list.txt')
         add_code_to_all_files(output_dir, track_list_path)
         #STEP2.1: run file check analysis
-
+        j2k_config = load_config('J2K_CONFIG.json')
+        directory_path=j2k_config['execution']['output-directory']
         generate_file_access_report(
-            j2k_config['execution']['output-directory'],
+            directory_path,
             os.path.join(directory_path, "fileaccess.txt"),
             "cell", ".py" , 10
         )
