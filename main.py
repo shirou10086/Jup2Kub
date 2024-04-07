@@ -34,16 +34,17 @@ def push_to_docker_hub(image_tag):
     except subprocess.CalledProcessError as e:
         print(f"Failed to push {image_tag} to Docker Hub: {e}")
 
-def dockerize_and_push(filename, dockerfiles_path, python_version, output_dir, dockerhub_username, dockerhub_repository):
+def dockerize_and_push(filename, dockerfiles_path, python_version, output_dir, dockerhub_username, dockerhub_repository, file_accessed):
     """
-    packs the functions for create Dockerfile, build image, and push to Docker Hub.
-    one function in one thread.
+    Packs the functions for creating Dockerfile, building image, and pushing to Docker Hub.
+    One function in one thread. Now includes a check for file access.
     """
     dockerfile_path = create_dockerfile(filename, 'requirements.txt', dockerfiles_path, python_version)
     image_name_tag = f"{dockerhub_username}/{dockerhub_repository}:{filename.split('.')[0]}"
     build_docker_image(dockerfile_path, image_name_tag, output_dir)
     push_to_docker_hub(image_name_tag)
-    return (f"{dockerhub_username}/{dockerhub_repository}", filename.split('.')[0])
+    return (f"{dockerhub_username}/{dockerhub_repository}", filename.split('.')[0], file_accessed)
+
 
 
 
@@ -60,7 +61,7 @@ def main(skip_dockerization, notebook_path, output_dir, dockerhub_username, dock
                 # split the line by the first occurrence of ":"
                 parts = line.split(':', 1)
                 if len(parts) == 2:
-                    job_info_list.append((parts[0], parts[1]))
+                    job_info_list.append((parts[0], parts[1], False))
     else:
         # NOT SKIPPING DOCKERIZATION
 
@@ -73,12 +74,14 @@ def main(skip_dockerization, notebook_path, output_dir, dockerhub_username, dock
         #STEP2.1: run file check analysis
         j2k_config = load_config('J2K_CONFIG.json')
         directory_path=j2k_config['execution']['output-directory']
-        generate_file_access_report(
-            directory_path,
-            os.path.join(directory_path, "fileaccess.txt"),
-            "cell", ".py" , 10
-        )
+        report_file_path = os.path.join(directory_path, "fileaccess.txt")
+        generate_file_access_report(directory_path,report_file_path,"cell", ".py" , 10)
         #directory_path is output_dir, report_file_path is fileaccess.txt under output_dir
+        #it reads from fileaccess.txt ,set True if accessed file
+        file_access_map = {}
+        with open(report_file_path, 'r') as report_file:
+            for filename in report_file.readlines():
+                file_access_map[filename.strip()] = True
 
 
         # STEP 3: Dockerize the Python files
@@ -87,7 +90,7 @@ def main(skip_dockerization, notebook_path, output_dir, dockerhub_username, dock
         os.makedirs(dockerfiles_path, exist_ok=True)
 
         with ThreadPoolExecutor(max_workers=int(n_docker_worker)) as executor:
-            futures = [executor.submit(dockerize_and_push, filename, dockerfiles_path, python_version, output_dir, dockerhub_username, dockerhub_repository)
+            futures = [executor.submit(dockerize_and_push, filename, dockerfiles_path, python_version, output_dir, dockerhub_username, dockerhub_repository,file_access_map.get(filename.split('.')[0], False) )
                        for filename in os.listdir(output_dir)
                        if re.match(r'cell\d+\.py$', filename)]  # match files here
 
@@ -95,8 +98,8 @@ def main(skip_dockerization, notebook_path, output_dir, dockerhub_username, dock
                 image_tag = future.result()
                 job_info_list.append(image_tag)
         print("+++++++++++++++++++++++++++++++++++++++")
-        for item in job_info_list:
-            print(item)
+        for job_info in job_info_list:
+            print(f"Repository: {job_info[0]}, Tag: {job_info[1]}, File Accessed: {job_info[2]}")
 
 
     # # STEP 4: Makesure cleanup_info.json exists
