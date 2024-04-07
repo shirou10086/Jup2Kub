@@ -1,0 +1,19 @@
+{
+    "results-hub": {
+        "master-node-name": "node0.net-test.rdma-prefetch-pg0.wisc.cloudlab.us",
+        "local-pv-path": "/results-hub-log",
+        "pv-name": "local-pv",
+        "pvc-name": "local-pvc-for-rh",
+        "pv-storage-size": "6Gi",
+        "pvc-storage-size": "1Gi",
+        "namespace": "default"
+    },
+
+    "execution": {
+        "output-directory": "./execution",
+        "dockerhub-username": "yizhuoliang",
+        "dockerhub-repo-name": "jup2kub",
+        "image-list-filename": "image_list.txt",
+        "n-docker-worker": "4"
+    }
+}
