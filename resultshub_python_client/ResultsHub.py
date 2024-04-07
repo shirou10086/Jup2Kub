@@ -13,6 +13,7 @@ def resolve_hostname_to_ip(hostname):
     """
     try:
         ip_address = socket.gethostbyname(hostname)
+        print(f"Successfully resolved {hostname}:{ip_address}")
         return ip_address
     except socket.gaierror as e:
         print(f"Error resolving hostname {hostname}: {e}")
