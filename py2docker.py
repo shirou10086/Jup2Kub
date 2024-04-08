@@ -17,7 +17,7 @@ def create_dockerfile(file_name, requirements_path, dockerfiles_path, python_ver
     COPY J2kResultsHub_pb2.py /app
     COPY J2kResultsHub_pb2_grpc.py /app
     COPY {requirements_path} /app
-    RUN apt-get update && apt-get install -y dnsutils && pip install --ignore-installed -r requirements.txt
+    RUN apt-get update && pip install --ignore-installed -r requirements.txt
     CMD ["python", "/app/{os.path.basename(file_name)}"]
     '''
 
