@@ -5,7 +5,7 @@ from kubernetes.client.rest import ApiException
 This file contains the function for deploying all the k8s cluster components
 '''
 
-def create_local_pv(node_name, local_path, pv_name, storage_size):
+def create_pv(node_name, local_path, pv_name, storage_size):
     # Define the PV
     pv = client.V1PersistentVolume(
         api_version="v1",
@@ -14,7 +14,7 @@ def create_local_pv(node_name, local_path, pv_name, storage_size):
         spec=client.V1PersistentVolumeSpec(
             capacity={"storage": storage_size},
             volume_mode="Filesystem",
-            access_modes=["ReadWriteMany"], # the ResultsHub and a Job should be able to access FS simultaneously
+            access_modes=["ReadWriteMany"], # We enforce the access patern constraints ourselves
             persistent_volume_reclaim_policy="Retain",
             local=client.V1LocalVolumeSource(path=local_path),
             node_affinity=client.V1VolumeNodeAffinity(
@@ -89,7 +89,7 @@ def deploy_resultsHub_to_statefulset(pvc_name, namespace):
             selector=client.V1LabelSelector(
                 match_labels={"app": "results-hub"}
             ),
-            service_name="results-hub",
+            service_name="results-hub-service",
             replicas=1,  # Ensure only 1 pod is created
             template=client.V1PodTemplateSpec(
                 metadata=client.V1ObjectMeta(
@@ -112,7 +112,7 @@ def deploy_resultsHub_to_statefulset(pvc_name, namespace):
                             persistent_volume_claim=client.V1PersistentVolumeClaimVolumeSource(claim_name=pvc_name)
                         )
                     ],
-                    tolerations=[  # Add this tolerations section
+                    tolerations=[ # Add this toleration because we do want the master node to run cells as well
                         client.V1Toleration(
                             key="node-role.kubernetes.io/control-plane",
                             operator="Exists",
@@ -175,8 +175,16 @@ def deploy_stateless_job(image_name, tag, namespace):
                     containers=[client.V1Container(
                         name="jup2kub-job",
                         image=f"{image_name}:{tag}",
+                        image_pull_policy="Always"
                     )],
-                    restart_policy="Never"  # Ensure the container exits after completion
+                    restart_policy="Never",  # Ensure the container exits after completion
+                    tolerations=[ # Add this toleration because we do want the master node to run cells as well
+                        client.V1Toleration(
+                            key="node-role.kubernetes.io/control-plane",
+                            operator="Exists",
+                            effect="NoSchedule"
+                        )
+                    ]
                 )
             )
         )
@@ -214,7 +222,8 @@ def deploy_file_access_job(image_name, tag, namespace, pvc_name):
                                     mount_path="/app/data",  # The path inside the container
                                     name="storage"
                                 )
-                            ]
+                            ],
+                            image_pull_policy="Always"
                         )
                     ],
                     restart_policy="Never",
@@ -233,7 +242,7 @@ def deploy_file_access_job(image_name, tag, namespace, pvc_name):
                                     client.V1NodeSelectorTerm(
                                         match_expressions=[
                                             client.V1NodeSelectorRequirement(
-                                                key="node-role.kubernetes.io/master",
+                                                key="node-role.kubernetes.io/control-plane",
                                                 operator="Exists"
                                             )
                                         ]
@@ -241,7 +250,14 @@ def deploy_file_access_job(image_name, tag, namespace, pvc_name):
                                 ]
                             )
                         )
-                    )
+                    ),
+                    tolerations=[ # Add this toleration because we do want the master node to run cells as well
+                        client.V1Toleration(
+                            key="node-role.kubernetes.io/control-plane",
+                            operator="Exists",
+                            effect="NoSchedule"
+                        )
+                    ]
                 )
             )
         )
