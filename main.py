@@ -70,6 +70,7 @@ def main(skip_dockerization, notebook_path, output_dir, dockerhub_username, dock
 
         # STEP 2: Run dependency analysis
         track_list_path = os.path.join(output_dir, 'variable_track_list.txt')
+        set={}
         add_code_to_all_files(output_dir, track_list_path)
         #STEP2.1: run file check analysis
         j2k_config = load_config('J2K_CONFIG.json')
@@ -148,7 +149,7 @@ def main(skip_dockerization, notebook_path, output_dir, dockerhub_username, dock
 
 if __name__ == '__main__':
     skip_dockerization = True if len(sys.argv) > 1 and sys.argv[1] == "skip" else False
-    notebook_path = sys.argv[2] if len(sys.argv) > 2 else './example/localvariable.ipynb'
+    notebook_path = sys.argv[2] if len(sys.argv) > 2 else './example/timecomplexity.ipynb'
 
     # Parse the configuration file
     j2k_config = load_config('J2K_CONFIG.json')
