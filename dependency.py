@@ -72,12 +72,12 @@ def process_file(filepath, track_list_path):
 
     with open(filepath, 'r') as file:
         lines = file.readlines()
-
+    if not any("import ResultsHub as rh" in line for line in lines):
+        lines.insert(0, "import ResultsHub as rh\n")
     tree = ast.parse(''.join(lines))
     tracker = VariableTracker()
     tracker.visit(tree)
-    if not any("import ResultsHub as rh" in line for line in lines):
-            lines.insert(0, "import ResultsHub as rh\n")
+
     cell_number = int(re.search(r'cell(\d+)\.py$', os.path.basename(filepath)).group(1))
 
     if os.path.exists(track_list_path):
@@ -95,7 +95,8 @@ def process_file(filepath, track_list_path):
                 fetch_statements.append(fetch_code)
 
     # Insert fetch codes at the beginning of the file
-    lines.insert(0, "\n".join(fetch_statements) + "\n")
+    import_index = next((i for i, line in enumerate(lines) if "import ResultsHub as rh" in line), 0)
+    lines.insert(import_index + 1, "\n".join(fetch_statements) + "\n")
 
     updated_content = "".join(lines)
 
