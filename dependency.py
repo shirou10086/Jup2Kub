@@ -76,7 +76,8 @@ def process_file(filepath, track_list_path):
     tree = ast.parse(''.join(lines))
     tracker = VariableTracker()
     tracker.visit(tree)
-
+    if not any("import ResultsHub as rh" in line for line in lines):
+            lines.insert(0, "import ResultsHub as rh\n")
     cell_number = int(re.search(r'cell(\d+)\.py$', os.path.basename(filepath)).group(1))
 
     if os.path.exists(track_list_path):
