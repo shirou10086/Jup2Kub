@@ -22,5 +22,10 @@
         "job-pvc-storage-size": "100Mi",
         "data-dir-path": "/Users/coulson/Jup2Kub/example/data",
         "namespace": "default"
+    },
+
+    "filesAccess": {
+        "1-write": "intermediateData.txt",
+        "2-read": "intermediateData.txt"
     }
 }

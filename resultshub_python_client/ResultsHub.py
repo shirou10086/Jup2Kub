@@ -71,3 +71,17 @@ def fetchVarResult(varName, varAncestorCell, host='localhost'):
         except grpc.RpcError as e:
             print(f"Fetching var {varName} failed: {e}, retrying in 2 seconds...")
             time.sleep(2)
+
+def requiringFile(filePath, prevAccessCell, host='localhost'):
+    port = '30051'
+    while True:
+        try:
+            # Use the host argument
+            with grpc.insecure_channel(f'{resolve_hostname_to_ip(host)}:{port}') as channel:
+                stub = J2kResultsHub_pb2_grpc.ResultsHubStub(channel)
+                fetch_request = J2kResultsHub_pb2.RequiringFile(filePath=filePath, prevAccessCell=prevAccessCell)
+                print(f"Access to file {filePath} granted.")
+                return
+        except grpc.RpcError as e:
+            print(f"Fetching var {varName} failed: {e}, retrying in 2 seconds...")
+            time.sleep(2)
