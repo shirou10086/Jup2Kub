@@ -83,5 +83,5 @@ def requiringFile(filePath, prevAccessCell, host='localhost'):
                 print(f"Access to file {filePath} granted.")
                 return
         except grpc.RpcError as e:
-            print(f"Fetching var {varName} failed: {e}, retrying in 2 seconds...")
+            print(f"Requiring file {filePath} failed: {e}, retrying in 2 seconds...")
             time.sleep(2)
