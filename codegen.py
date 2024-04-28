@@ -3,6 +3,8 @@ import os
 import json
 import re
 
+# This file contains the functions for Variable Dependency Analysis and Codegen into Cells
+
 class VariableTracker(ast.NodeVisitor):
     def __init__(self):
         super().__init__()
@@ -66,14 +68,16 @@ class VariableTracker(ast.NodeVisitor):
         """The generic visit method will ensure any child nodes are visited."""
         ast.NodeVisitor.generic_visit(self, node)
 
-def process_file(filepath, track_list_path):
+def gen_code_to_cell(filepath, track_list_path, waitForList):
     if not re.match(r'cell\d+\.py$', os.path.basename(filepath)):
         return
 
     with open(filepath, 'r') as file:
         lines = file.readlines()
-    if not any("import ResultsHub as rh" in line for line in lines):
-        lines.insert(0, "import ResultsHub as rh\n")
+    
+    lines.insert(0, "import ResultsHub as rh\n")
+
+    # Fetching variable code
     tree = ast.parse(''.join(lines))
     tracker = VariableTracker()
     tracker.visit(tree)
@@ -86,17 +90,21 @@ def process_file(filepath, track_list_path):
     else:
         variable_track_list = {}
 
-    fetch_statements = []
+    fetch_and_wait_statements = []
     for var, used_line in tracker.used_vars.items():
         if var in variable_track_list and variable_track_list[var] < cell_number:
             defined_line = tracker.global_vars.get(var, float('inf'))
             if used_line < defined_line:
                 fetch_code = f"{var} = rh.fetchVarResult('{var}', varAncestorCell={variable_track_list[var]}, host='results-hub-service.default.svc.cluster.local')"
-                fetch_statements.append(fetch_code)
+                fetch_and_wait_statements.append(fetch_code)
 
-    # Insert fetch codes at the beginning of the file
+    # Add waiting for cell code according to the waitForList
+    for waitFor in waitForList:
+        fetch_and_wait_statements.append(f"rh.waitForCell(waitFor='{waitFor}', host='results-hub-service.default.svc.cluster.local')")
+
+    # Insert fetch & wait code at the beginning of the file
     import_index = next((i for i, line in enumerate(lines) if "import ResultsHub as rh" in line), 0)
-    lines.insert(import_index + 1, "\n".join(fetch_statements) + "\n")
+    lines.insert(import_index + 1, "\n".join(fetch_and_wait_statements) + "\n")
 
     updated_content = "".join(lines)
 
@@ -121,12 +129,17 @@ def process_file(filepath, track_list_path):
     with open(track_list_path, 'w') as file:
         json.dump(variable_track_list, file, indent=4)
 
-def add_code_to_all_files(directory, track_list_path):
+def gen_code_to_all_cells(directory, track_list_path, conflict_list_path):
+    # read the conflict list file
+    with open(os.path.join(conflict_list_path)) as f:
+        all_conflicts = json.load(f)
     for filename in os.listdir(directory):
-        filepath = os.path.join(directory, filename)
-        process_file(filepath, track_list_path)
+        if filename.startswith('cell'):
+            cell_num = int(filename[len('cell'):].split('.')[0])
+            filepath = os.path.join(directory, filename)
+            gen_code_to_cell(filepath, track_list_path, all_conflicts[f"{cell_num}"])
 
 if __name__ == "__main__":
     directory = '/path/to/your/cells'
     track_list_path = '/path/to/your/track/list.json'
-    add_code_to_all_files(directory, track_list_path)
+    gen_code_to_all_cells(directory, track_list_path)

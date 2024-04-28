@@ -9,12 +9,13 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 
 
 # J2K packages
-from dependency import add_code_to_all_files
+from codegen import gen_code_to_all_cells
 import py2docker
 from py2docker import build_docker_image, create_dockerfile
 from deploymentUtils import *
 from splitnotebook import process_notebook
 from checkfileaccess import generate_file_access_report
+from fileConflicts import *
 
 '''
 This file provide a unified user interface
@@ -64,16 +65,16 @@ def main(skip_dockerization, notebook_path, output_dir, dockerhub_username, dock
                     job_info_list.append((parts[0], parts[1], False))
     else:
         # NOT SKIPPING DOCKERIZATION
-
-        # STEP 1: Split and Process the notebook
-        process_notebook(notebook_path, output_dir)
-
-        # STEP 2: Run dependency analysis
-        track_list_path = os.path.join(output_dir, 'variable_track_list.txt')
-        set={}
-        add_code_to_all_files(output_dir, track_list_path)
-        #STEP2.1: run file check analysis
         j2k_config = load_config('J2K_CONFIG.json')
+        # STEP 1: Split and Run Static Analysis the notebook
+        process_notebook(notebook_path, output_dir)
+        build_conflict_map(output_dir, j2k_config['filesReadWrite'])
+
+        # STEP 2: Run variable dependency analysis & file conflicts analysis
+        track_list_path = os.path.join(output_dir, 'variable_track_list.txt')
+        conflict_list_path = os.path.join(output_dir, 'conflict_list.json')
+        gen_code_to_all_cells(output_dir, track_list_path, conflict_list_path)
+        #STEP2.1: run file access check analysis
         directory_path=j2k_config['execution']['output-directory']
         report_file_path = os.path.join(directory_path, "fileaccess.txt")
         generate_file_access_report(directory_path,report_file_path,"cell", ".py" , 10)
