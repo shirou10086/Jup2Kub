@@ -166,6 +166,8 @@ def main():
     elif choice == '3':
         wait_for_jobs()
     elif choice == '4':
+        clear_codegen_outputs()
+    elif choice == '5':
         print("Exiting toolbox.")
     else:
         print("Invalid input!")
