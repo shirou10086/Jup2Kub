@@ -100,7 +100,7 @@ def gen_code_to_cell(filepath, track_list_path, waitForList):
 
     # Add waiting for cell code according to the waitForList
     for waitFor in waitForList:
-        fetch_and_wait_statements.append(f"rh.waitForCell(waitFor='{waitFor}', host='results-hub-service.default.svc.cluster.local')")
+        fetch_and_wait_statements.append(f"rh.waitForCell(waitFor={waitFor}, host='results-hub-service.default.svc.cluster.local')")
 
     # Insert fetch & wait code at the beginning of the file
     import_index = next((i for i, line in enumerate(lines) if "import ResultsHub as rh" in line), 0)

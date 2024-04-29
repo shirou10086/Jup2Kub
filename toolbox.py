@@ -130,16 +130,33 @@ def wait_for_jobs():
     else:
         print("All jobs have completed successfully.")
 
+def clear_codegen_outputs():
+    # Load J2K_CONFIG
+    with open("./J2K_CONFIG.json", 'r') as file:
+        j2k_config = json.load(file)
+    output_dir = j2k_config['execution']['output-directory']
+
+    # Check if the directory exists
+    if os.path.exists(output_dir) and os.path.isdir(output_dir):
+        try:
+            # Recursively remove the directory and all its contents
+            shutil.rmtree(output_dir)
+            print(f"Successfully removed directory: {output_dir}")
+        except Exception as e:
+            print(f"Failed to remove directory: {output_dir}. Reason: {e}")
+    else:
+        print(f"The specified directory does not exist: {output_dir}")
 
 def main():
     print("\nChoose a tool from the following:")
     print("1. Delete all resources in a specific namespace")
     print("2. Reset ResultsHub's logs")
     print("3. Wait for all jobs finish")
-    print("4. Exit")
+    print("4. Clear all codegen outputs")
+    print("5. Exit")
     
     # Get user input
-    choice = input("Enter your choice (1-3): ")
+    choice = input("Enter your choice (1-5): ")
     
     # Process the choice
     if choice == '1':
