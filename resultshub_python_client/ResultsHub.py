@@ -8,7 +8,7 @@ class ResultsHubSubmission:
     def __init__(self, cell_number, host='localhost'):
         self.cell_number = cell_number
         self.host = host
-        self.port = '50051' 
+        self.port = '30051' 
         self.var_results = J2kResultsHub_pb2.VarResults(cellNumber=cell_number)
 
     def addVar(self, var_name, var):
@@ -39,7 +39,7 @@ class ResultsHubSubmission:
                 time.sleep(2)  # Wait for 2 seconds before retrying
 
 def fetchVarResult(varName, varAncestorCell, host='localhost'):
-    port = '50051'
+    port = '30051'
     while True:
         try:
             with grpc.insecure_channel(f'{host}:{port}') as channel:
@@ -57,7 +57,7 @@ def fetchVarResult(varName, varAncestorCell, host='localhost'):
             time.sleep(2)
 
 def waitForCell(waitFor, host='localhost'):
-    port = '50051'
+    port = '30051'
     while True:
         try:
             with grpc.insecure_channel(f'{host}:{port}') as channel:
