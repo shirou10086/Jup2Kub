@@ -59,6 +59,8 @@ def delete_all_resources():
         print("All PVs deleted in the cluster.")
     except ApiException as e:
         print(f"Failed to delete PVs: {e}")
+    
+    print("NOTE: Please wait ~ 1 minute for all pods to teriminate")
 
 def create_reset_results_log():
     # Load J2K_CONFIG
