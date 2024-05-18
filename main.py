@@ -7,7 +7,6 @@ import sys
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
-
 # J2K packages
 from codegen import gen_code_to_all_cells
 import py2docker
