@@ -60,7 +60,7 @@ insert_code_to_cell <- function(filepath, previous_vars) {
 
                 # Fetch the variable only if it is used before being assigned
                 if (length(assignment_line) == 0 || first_use_line < assignment_line[1]) {
-                    fetch_code <- sprintf("%s <- fetchVarResult('%s', varAncestorCell=%d, host='results-hub-service.default.svc.cluster.local')", var, var, cell_number - 1)
+                    fetch_code <- sprintf("%s <- fetchVarResult('%s', varAncestorCell=%dL, host='results-hub-service.default.svc.cluster.local')", var, var, cell_number - 1)
                     fetch_and_wait_statements <- c(fetch_and_wait_statements, fetch_code)
                 }
             }
