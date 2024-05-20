@@ -7,6 +7,8 @@ import sys
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
+#R packages
+from r2docker import get_version_r ,create_dockerfile_r
 # J2K packages
 from codegen import gen_code_to_all_cells
 import py2docker
@@ -45,8 +47,14 @@ def dockerize_and_push(filename, dockerfiles_path, python_version, output_dir, d
     push_to_docker_hub(image_name_tag)
     return (f"{dockerhub_username}/{dockerhub_repository}", filename.split('.')[0], file_accessed)
 
-
-
+def dockerize_and_push_r(filename, dockerfiles_path, output_dir, dockerhub_username, dockerhub_repository, file_accessed):
+    #TODO: install_packages.R should have more descriptive name, and should goes to the config
+    dockerfile_path = create_dockerfile_r(filename, os.path.join(output_dir, 'install_packages.R'), 'requirements.txt', dockerfiles_path)
+    image_name_tag = f"{dockerhub_username}/{dockerhub_repository}:{filename.split('.')[0]}"
+    build_docker_image(dockerfile_path, image_name_tag, output_dir)
+    push_to_docker_hub(image_name_tag)
+    return (f"{dockerhub_username}/{dockerhub_repository}", filename.split('.')[0], file_accessed)
+    
 
 def main(skip_dockerization, notebook_path, output_dir, dockerhub_username, dockerhub_repository, image_list_path, n_docker_worker):
 
@@ -70,9 +78,15 @@ def main(skip_dockerization, notebook_path, output_dir, dockerhub_username, dock
         build_conflict_map(output_dir, j2k_config['filesReadWrite'])
 
         # STEP 2: Run variable dependency analysis & file conflicts analysis
+        # for Python
         track_list_path = os.path.join(output_dir, 'variable_track_list.txt')
         conflict_list_path = os.path.join(output_dir, 'conflict_list.json')
         gen_code_to_all_cells(output_dir, track_list_path, conflict_list_path)
+        # for R
+        result = subprocess.run(['Rscript', "codegen_r.R", f"{output_dir}"], check=True, capture_output=True, text=True)
+        print("R script output:")
+        print(result.stdout)
+
         #STEP2.1: run file access check analysis
         directory_path=j2k_config['execution']['output-directory']
         report_file_path = os.path.join(directory_path, "fileaccess.txt")
@@ -90,6 +104,8 @@ def main(skip_dockerization, notebook_path, output_dir, dockerhub_username, dock
         python_version = py2docker.get_python_version()
         os.makedirs(dockerfiles_path, exist_ok=True)
 
+        #TODO: should combine the languages into one iteration
+        # for Python
         with ThreadPoolExecutor(max_workers=int(n_docker_worker)) as executor:
             futures = [executor.submit(dockerize_and_push, filename, dockerfiles_path, python_version, output_dir, dockerhub_username, dockerhub_repository,file_access_map.get(filename.split('.')[0], False) )
                        for filename in os.listdir(output_dir)
@@ -98,18 +114,31 @@ def main(skip_dockerization, notebook_path, output_dir, dockerhub_username, dock
             for future in as_completed(futures):
                 image_tag = future.result()
                 job_info_list.append(image_tag)
+        # for R
+        #TODO: use config, not hard code
+        requirements_path_r = os.path.join(output_dir, 'install_packages.R')
+        requirements_path_py = 'requirements.txt'
+        dockerfiles_path = os.path.join(output_dir, 'docker')
+        r_version = get_version_r()
+        os.makedirs(dockerfiles_path, exist_ok=True)
+
+        r_file_names = [file for file in os.listdir(output_dir) if file.endswith('.R') and file.startswith('cell')]
+
+        with ThreadPoolExecutor(max_workers=4) as executor:
+            futures = []
+            for filename in r_file_names:
+                dockerfile_path = create_dockerfile_r(filename, requirements_path_r, requirements_path_py, dockerfiles_path)
+                image_tag = f"{filename.split('.')[0]}"
+                futures.append(executor.submit(dockerize_and_push_r, filename, dockerfile_path, output_dir, dockerhub_username, dockerhub_repository, False))
+
+            for future in as_completed(futures):
+                image_tag = future.result()
+                job_info_list.append(image_tag)
+        
         print("========== Jobs Info ==========")
         for job_info in job_info_list:
             print(f"Repository: {job_info[0]}, Tag: {job_info[1]}, File Accessed: {job_info[2]}")
-
-
-    # # STEP 4: Makesure cleanup_info.json exists
-    # cleanup_info_filename = "cleanup_info.txt"
-    # try:
-    #     cleanup_info = open(cleanup_info_filename, 'x')
-    # except FileExistsError:
-    #     # If the file already exists, open it in 'a' mode to append without truncating it.
-    #     cleanup_info = open(cleanup_info_filename, 'a')
+        
 
     # STEP 5: Deploy J2K's control plane: PV, PVC, and ResultsHub
     j2k_config = load_config('J2K_CONFIG.json')
