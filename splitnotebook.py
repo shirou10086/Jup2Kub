@@ -99,10 +99,3 @@ def process_notebook(notebook_path, output_directory):
     save_requirements(python_imports, output_directory)
     save_r_packages(r_packages, output_directory)
     copy_resultshub_files('./resultshub_python_client', output_directory)
-
-
-
-# Example usage
-notebook_path = './example/Rexample.ipynb'
-output_directory = 'execution'
-process_notebook(notebook_path, output_directory)
