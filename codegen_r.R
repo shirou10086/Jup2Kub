@@ -65,7 +65,7 @@ insert_code_to_cell <- function(filepath, previous_vars) {
                 }
             }
         }
-        fetch_and_wait_statements <- c(fetch_and_wait_statements, sprintf("waitForCell(waitFor=%d, host='results-hub-service.default.svc.cluster.local')", cell_number - 1))
+        # fetch_and_wait_statements <- c(fetch_and_wait_statements, sprintf("waitForCell(waitFor=%d, host='results-hub-service.default.svc.cluster.local')", cell_number - 1))
     }
 
     init_code <- c(
