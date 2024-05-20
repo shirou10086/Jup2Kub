@@ -94,7 +94,7 @@ insert_code_to_cell <- function(filepath, previous_vars) {
     lines <- append(lines, fetch_and_wait_statements, after = import_index)
 
     submit_code <- "\n# SUBMIT CODE START\n"
-    submit_code <- paste0(submit_code, sprintf("results_hub <- ResultsHubSubmission(%dL)\n", cell_number))
+    submit_code <- paste0(submit_code, sprintf("results_hub <- ResultsHubSubmission(%dL, host='results-hub-service.default.svc.cluster.local')\n", cell_number))
     for (var in vars$global_vars) {
         submit_code <- paste0(submit_code, sprintf("results_hub$addVar('%s', %s)\n", var, var))
     }
