@@ -127,9 +127,7 @@ def main(skip_dockerization, notebook_path, output_dir, dockerhub_username, dock
         with ThreadPoolExecutor(max_workers=4) as executor:
             futures = []
             for filename in r_file_names:
-                dockerfile_path = create_dockerfile_r(filename, requirements_path_r, requirements_path_py, dockerfiles_path)
-                image_tag = f"{filename.split('.')[0]}"
-                futures.append(executor.submit(dockerize_and_push_r, filename, dockerfile_path, output_dir, dockerhub_username, dockerhub_repository, False))
+                futures.append(executor.submit(dockerize_and_push_r, filename, dockerfiles_path, output_dir, dockerhub_username, dockerhub_repository, False))
 
             for future in as_completed(futures):
                 image_tag = future.result()
