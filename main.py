@@ -54,7 +54,7 @@ def dockerize_and_push_r(filename, dockerfiles_path, output_dir, dockerhub_usern
     build_docker_image(dockerfile_path, image_name_tag, output_dir)
     push_to_docker_hub(image_name_tag)
     return (f"{dockerhub_username}/{dockerhub_repository}", filename.split('.')[0], file_accessed)
-    
+
 
 def main(skip_dockerization, notebook_path, output_dir, dockerhub_username, dockerhub_repository, image_list_path, n_docker_worker):
 
@@ -132,11 +132,11 @@ def main(skip_dockerization, notebook_path, output_dir, dockerhub_username, dock
             for future in as_completed(futures):
                 image_tag = future.result()
                 job_info_list.append(image_tag)
-        
+
         print("========== Jobs Info ==========")
         for job_info in job_info_list:
             print(f"Repository: {job_info[0]}, Tag: {job_info[1]}, File Accessed: {job_info[2]}")
-        
+
 
     # STEP 5: Deploy J2K's control plane: PV, PVC, and ResultsHub
     j2k_config = load_config('J2K_CONFIG.json')
@@ -176,7 +176,7 @@ def main(skip_dockerization, notebook_path, output_dir, dockerhub_username, dock
 
 if __name__ == '__main__':
     skip_dockerization = True if len(sys.argv) > 1 and sys.argv[1] == "skip" else False
-    notebook_path = sys.argv[2] if len(sys.argv) > 2 else './example/timecomplexity.ipynb'
+    notebook_path = sys.argv[2] if len(sys.argv) > 2 else './example/Rexample.ipynb'
 
     # Parse the configuration file
     j2k_config = load_config('J2K_CONFIG.json')
