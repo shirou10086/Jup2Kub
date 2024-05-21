@@ -23,7 +23,9 @@ def is_standard_library(module_name):
 def filter_non_standard_libraries(imports):
     filtered_imports = {imp for imp in imports if not is_standard_library(imp)}
     return filtered_imports
+
 def save_cells_to_files(notebook, output_directory, all_python_imports, all_r_libraries):
+    #This function checks both library and imports from R and python and added in the files
     os.makedirs(output_directory, exist_ok=True)
 
     valid_cell_index = 1
@@ -54,10 +56,6 @@ def save_cells_to_files(notebook, output_directory, all_python_imports, all_r_li
 
             valid_cell_index += 1
             print(f"Saved {cell_file_path}")
-
-
-
-
 
 
 def extract_full_import_statements_python(code):
@@ -91,10 +89,6 @@ def copy_resultshub_files(source_directory, target_directory):
         target_file_path = os.path.join(target_directory, os.path.basename(file_path))
         shutil.copy2(file_path, target_file_path)
     print(f"All files from {source_directory} have been copied to {target_directory}")
-
-
-# +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
 
 def extract_imports_from_code_python(code):
     tree = ast.parse(code)
@@ -176,8 +170,9 @@ def process_notebook(notebook_path, output_directory):
     save_r_packages(r_packages, output_directory)
 #process py files:
     dependencies = filter_non_standard_libraries(imports_names_py)
-    save_cells_to_files(notebook, output_directory, imports_statements_py,r_packages)
     save_requirements(dependencies, output_directory)
+#adding the imports for both R and py
+    save_cells_to_files(notebook, output_directory, imports_statements_py,r_packages)
 #add r and py resulthub client:
     copy_resultshub_files('./resultshub_client', output_directory)
 
