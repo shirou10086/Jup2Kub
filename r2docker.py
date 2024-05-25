@@ -100,7 +100,7 @@ def build_docker_image_r(dockerfile_path, image_tag, context_path):
         subprocess.run(["docker", "build", "-f", dockerfile_path, "-t", image_tag, context_path], check=True)
     except subprocess.CalledProcessError as e:
         print(f"Error during Docker image build: {e}")
-
+'''
 # Example usage
 output_dir = './execution'
 requirements_path_r = os.path.join(output_dir, 'install_packages.R')
@@ -126,3 +126,4 @@ with ThreadPoolExecutor(max_workers=4) as executor:
             print(f"An error occurred: {e}")
 
 print("All Docker images built successfully.")
+'''
