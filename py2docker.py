@@ -10,14 +10,15 @@ def get_python_version():
 
 def create_dockerfile(file_name, requirements_path, dockerfiles_path, python_version):
     dockerfile_content = f'''
-    FROM python:{python_version}
+    FROM shirou10086/j2kbase:latest
+
+    # Set the working directory
     WORKDIR /app
+
+    # Copy necessary files
     COPY {file_name} /app
-    COPY ResultsHub.py /app
-    COPY J2kResultsHub_pb2.py /app
-    COPY J2kResultsHub_pb2_grpc.py /app
-    COPY {requirements_path} /app
-    RUN apt-get update && pip install --ignore-installed -r requirements.txt
+    COPY {requirements_path_py} /app
+    RUN pip3 install -r requirements.txt
     CMD ["python", "/app/{os.path.basename(file_name)}"]
     '''
 

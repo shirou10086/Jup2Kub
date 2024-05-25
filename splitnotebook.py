@@ -128,7 +128,7 @@ def save_r_packages(packages, output_directory, filename='install_packages.R'):
         file.write('''
 # set python path
 library(reticulate)
-use_virtualenv("/root/.virtualenvs/r-reticulate", required = TRUE)
+use_virtualenv("/venv", required = TRUE)
 ''')
     print(f"Saved R packages installation script to {path}")
 

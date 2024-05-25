@@ -30,63 +30,20 @@ def get_version_r(default_version='4.4.0'):
 
 def create_dockerfile_r(file_name, requirements_path_r, requirements_path_py, dockerfiles_path):
     dockerfile_content = f'''
-FROM ubuntu:20.04
+FROM shirou10086/j2kbase:latest
 
-ENV DEBIAN_FRONTEND=noninteractive
-
-# Install system dependencies and gnupg for managing GPG keys
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    gnupg \
-    build-essential \
-    libpq-dev \
-    python3.8 \
-    python3-pip \
-    python3-setuptools \
-    python3-dev \
-    libcurl4-openssl-dev \
-    libssl-dev \
-    libxml2-dev \
-    libpng-dev \
-    virtualenv \
-    software-properties-common
-
-# Add the CRAN repository
-RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 51716619E084DAB9 && \
-    add-apt-repository 'deb [arch=amd64,i386] https://cloud.r-project.org/bin/linux/ubuntu focal-cran40/'
-
-# Install R
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    r-base
-
-# Upgrade pip
-RUN pip3 install --upgrade pip
-
-# Create the virtual environment
-RUN virtualenv --python=python3.8 /root/.virtualenvs/r-reticulate
-
-ENV PYTHONPATH "$PYTHONPATH:/app"
+# Set the working directory
 WORKDIR /app
 
-# Copy all necessary files
+# Copy necessary files
 COPY {file_name} /app
-COPY ResultsHub.py /app
-COPY ResultsHubForR.py /app
-COPY J2kResultsHub_pb2.py /app
-COPY J2kResultsHub_pb2_grpc.py /app
 COPY {requirements_path_py} /app
 COPY install_packages.R /app
-
-# Install Python libraries
 RUN pip3 install -r requirements.txt
-
-# Install R libraries and check for reticulate installation
-RUN Rscript -e "install.packages(c('reticulate', 'virtualenv'), repos='http://cran.rstudio.com/')"
-
-# Install remaining R libraries
 RUN Rscript install_packages.R
 
-# Set the command to run the R script
 CMD ["Rscript", "/app/{os.path.basename(file_name)}"]
+
 '''
 
     dockerfile_path = os.path.join(dockerfiles_path, f"Dockerfile_{file_name.split('.')[0]}")
