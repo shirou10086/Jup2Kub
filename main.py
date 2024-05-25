@@ -99,43 +99,35 @@ def main(skip_dockerization, notebook_path, output_dir, dockerhub_username, dock
                 file_access_map[filename.strip()] = True
 
 
-        # STEP 3: Dockerize the Python files
+        # STEP 3: Dockerize the files
         dockerfiles_path = os.path.join(output_dir, "docker")
         python_version = py2docker.get_python_version()
         os.makedirs(dockerfiles_path, exist_ok=True)
 
-        #TODO: should combine the languages into one iteration
-        # for Python
-        with ThreadPoolExecutor(max_workers=int(n_docker_worker)) as executor:
-            futures = [executor.submit(dockerize_and_push, filename, dockerfiles_path, python_version, output_dir, dockerhub_username, dockerhub_repository,file_access_map.get(filename.split('.')[0], False) )
-                       for filename in os.listdir(output_dir)
-                       if re.match(r'cell\d+\.py$', filename)]  # match files here
+        # added max workers
+        max_workers = max(int(n_docker_worker), len(os.listdir(output_dir)))
 
-            for future in as_completed(futures):
-                image_tag = future.result()
-                job_info_list.append(image_tag)
-        # for R
-        #TODO: use config, not hard code
-        requirements_path_r = os.path.join(output_dir, 'install_packages.R')
-        requirements_path_py = 'requirements.txt'
-        dockerfiles_path = os.path.join(output_dir, 'docker')
-        r_version = get_version_r()
-        os.makedirs(dockerfiles_path, exist_ok=True)
-
-        r_file_names = [file for file in os.listdir(output_dir) if file.endswith('.R') and file.startswith('cell')]
-
-        with ThreadPoolExecutor(max_workers=4) as executor:
+        with ThreadPoolExecutor(max_workers=max_workers) as executor:
             futures = []
-            for filename in r_file_names:
-                futures.append(executor.submit(dockerize_and_push_r, filename, dockerfiles_path, output_dir, dockerhub_username, dockerhub_repository, False))
+
+            for filename in os.listdir(output_dir):
+                if re.match(r'cell\d+\.py$', filename):
+                    futures.append(executor.submit(
+                        dockerize_and_push, filename, dockerfiles_path, python_version, output_dir, dockerhub_username, dockerhub_repository, file_access_map.get(filename.split('.')[0], False)))
+                elif filename.endswith('.R') and filename.startswith('cell'):
+                    futures.append(executor.submit(
+                        dockerize_and_push_r, filename, dockerfiles_path, output_dir, dockerhub_username, dockerhub_repository, file_access_map.get(filename.split('.')[0], False)))
 
             for future in as_completed(futures):
                 image_tag = future.result()
                 job_info_list.append(image_tag)
+
 
         print("========== Jobs Info ==========")
         for job_info in job_info_list:
             print(f"Repository: {job_info[0]}, Tag: {job_info[1]}, File Accessed: {job_info[2]}")
+
+
 
 
     # STEP 5: Deploy J2K's control plane: PV, PVC, and ResultsHub
