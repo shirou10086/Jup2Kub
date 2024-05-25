@@ -125,11 +125,6 @@ def save_r_packages(packages, output_directory, filename='install_packages.R'):
     with open(path, 'w', encoding='utf-8') as file:
         for pkg in packages:
             file.write(f'install.packages("{pkg}", repos="http://cran.rstudio.com/")\n')
-        file.write('''
-# set python path
-library(reticulate)
-use_virtualenv("/venv", required = TRUE)
-''')
     print(f"Saved R packages installation script to {path}")
 
 

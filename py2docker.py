@@ -2,7 +2,7 @@ import os
 import subprocess
 import sys
 #build docker images based on splited python files
-def get_version_py():
+def get_python_version():
     # get current version
     version = sys.version_info
     return f"{version.major}.{version.minor}"
@@ -39,7 +39,7 @@ def build_docker_image(dockerfile_path, image_tag, context_path):
 output_dir = './example/output'
 requirements_path = os.path.join(output_dir, 'requirements.txt')
 dockerfiles_path = os.path.join(output_dir, 'docker')
-python_version = get_version_py()
+python_version = get_python_version()
 
 os.makedirs(dockerfiles_path, exist_ok=True)
 
