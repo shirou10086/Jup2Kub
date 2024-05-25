@@ -2,7 +2,7 @@ import os
 import subprocess
 import sys
 #build docker images based on splited python files
-def get_python_version():
+def get_version_py():
     # get current version
     version = sys.version_info
     return f"{version.major}.{version.minor}"
@@ -10,15 +10,14 @@ def get_python_version():
 
 def create_dockerfile(file_name, requirements_path, dockerfiles_path, python_version):
     dockerfile_content = f'''
-    FROM shirou10086/j2kbase:latest
-
-    # Set the working directory
+    FROM python:{python_version}
     WORKDIR /app
-
-    # Copy necessary files
     COPY {file_name} /app
-    COPY {requirements_path_py} /app
-    RUN pip3 install -r requirements.txt
+    COPY ResultsHub.py /app
+    COPY J2kResultsHub_pb2.py /app
+    COPY J2kResultsHub_pb2_grpc.py /app
+    COPY {requirements_path} /app
+    RUN apt-get update && pip install --ignore-installed -r requirements.txt
     CMD ["python", "/app/{os.path.basename(file_name)}"]
     '''
 
@@ -40,7 +39,7 @@ def build_docker_image(dockerfile_path, image_tag, context_path):
 output_dir = './example/output'
 requirements_path = os.path.join(output_dir, 'requirements.txt')
 dockerfiles_path = os.path.join(output_dir, 'docker')
-python_version = get_python_version()
+python_version = get_version_py()
 
 os.makedirs(dockerfiles_path, exist_ok=True)
 
