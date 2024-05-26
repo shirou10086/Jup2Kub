@@ -97,6 +97,11 @@ def main(skip_dockerization, notebook_path, output_dir, dockerhub_username, dock
         with open(report_file_path, 'r') as report_file:
             for filename in report_file.readlines():
                 file_access_map[filename.strip()] = True
+        # Also, if use already specified the cell's RW info, we also mark the file access as true
+        rw_list = j2k_config['filesReadWrite']
+        for cell_num, rw_string in enumerate(rw_list, start=1):
+            if rw_string:  # checks if the string is non-empty
+                file_access_map[f"cell{cell_num}"] = True
 
 
         # STEP 3: Dockerize the files
