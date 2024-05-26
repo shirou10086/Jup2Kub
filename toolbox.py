@@ -149,16 +149,55 @@ def clear_codegen_outputs():
     else:
         print(f"The specified directory does not exist: {output_dir}")
 
+def reset_execution():
+    delete_all_resources()
+    create_reset_results_log()
+    clear_codegen_outputs()
+    print("Execution reset complete.")
+
+def list_pods_by_node():
+    # Load J2K_CONFIG
+    with open("./J2K_CONFIG.json", 'r') as file:
+        j2k_config = json.load(file)
+    namespace = j2k_config['results-hub']['namespace']
+
+    # Load kube config
+    config.load_kube_config()
+
+    # Create a Kubernetes client
+    v1 = client.CoreV1Api()
+
+    # Fetch all pods within the specified namespace
+    pods = v1.list_namespaced_pod(namespace)
+
+    # Dictionary to hold node to pods mapping
+    node_to_pods = {}
+
+    # Iterate over all pods and group by node name
+    for pod in pods.items:
+        node_name = pod.spec.node_name
+        if node_name not in node_to_pods:
+            node_to_pods[node_name] = []
+        node_to_pods[node_name].append(pod.metadata.name)
+
+    # Output the pods grouped by node
+    for node, pods in node_to_pods.items():
+        print(f"Node name {node}:")
+        for pod in pods:
+            print(pod)
+
 def main():
     print("\nChoose a tool from the following:")
-    print("1. Delete all resources in a specific namespace")
+    print("1. Delete all cluster resources in the J2K namespace")
     print("2. Reset ResultsHub's logs")
-    print("3. Wait for all jobs finish")
+    print("3. Wait for all jobs to finish")
     print("4. Clear all codegen outputs")
-    print("5. Exit")
+    print("5. Reset execution (combines choices 1, 2, and 4)")
+    print("6. List nodes and the pods on them")
+    print("7. Exit")
     
     # Get user input
-    choice = input("Enter your choice (1-5): ")
+    choice = input("Enter your choice (1-6): ")
     
     # Process the choice
     if choice == '1':
@@ -170,12 +209,15 @@ def main():
     elif choice == '4':
         clear_codegen_outputs()
     elif choice == '5':
+        reset_execution()
+    elif choice == '6':
+        list_pods_by_node()
+    elif choice == '7':
         print("Exiting toolbox.")
     else:
         print("Invalid input!")
 
 if __name__ == "__main__":
     main()
-
 
 
