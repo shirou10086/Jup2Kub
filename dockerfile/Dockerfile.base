@@ -1,5 +1,5 @@
 FROM ubuntu:20.04
-#use this to update:docker build -t shirou10086/j2kdockerbase:latest -f Dockerfile.base .
+#use this to update:docker build -t shirou10086/j2kbase:latest -f Dockerfile.base .
 
 ENV DEBIAN_FRONTEND=noninteractive
 
