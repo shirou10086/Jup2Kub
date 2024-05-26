@@ -94,9 +94,10 @@ insert_code_to_cell <- function(filepath, previous_vars) {
 
     submit_code <- "\n# SUBMIT CODE START\n"
     submit_code <- paste0(submit_code, sprintf("results_hub <- ResultsHubSubmission(%dL, host='results-hub-service.default.svc.cluster.local')\n", cell_number))
-    for (var in vars$global_vars) {
-        submit_code <- paste0(submit_code, sprintf("results_hub$addVar('%s', %s)\n", var, var))
-    }
+    #This line skipped all addvars need to remove and restore add function
+    #for (var in vars$global_vars) {
+        #submit_code <- paste0(submit_code, sprintf("results_hub$addVar('%s', %s)\n", var, var))
+    #}
     submit_code <- paste0(submit_code, "results_hub$submit()\n")
     submit_code <- paste0(submit_code, sprintf("print('Submission Success for cell %d.')\n", cell_number))
     submit_code <- paste0(submit_code, "# SUBMIT CODE END\n")
@@ -120,10 +121,10 @@ gen_code_to_all_cells <- function(directory) {
 # Main function
 main <- function() {
     args <- commandArgs(trailingOnly = TRUE)
-    
+
     # Default directory is './execution' if no argument is provided
     directory <- ifelse(length(args) > 0, args[1], './execution')
-    
+
     gen_code_to_all_cells(directory)
 }
 
