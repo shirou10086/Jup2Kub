@@ -73,7 +73,7 @@ def create_pvc(pvc_name, storage_size, namespace):
             print(f"Exception when creating PersistentVolumeClaim: {e}")
             raise
 
-def xxx(pvc_name, namespace):
+def deploy_resultsHub_to_statefulset(pvc_name, namespace):
     config.load_kube_config()  # Load kubeconfig
     api_instance = client.AppsV1Api()
 
@@ -158,7 +158,7 @@ def xxx(pvc_name, namespace):
     print("StatefulSet created.")
 
 # Testing purpose only, never restart, so the log is retained
-def deploy_resultsHub_to_statefulset(pvc_name, namespace):
+def xxx(pvc_name, namespace):
     config.load_kube_config()  # Load kubeconfig
     api_instance = client.CoreV1Api()
 
