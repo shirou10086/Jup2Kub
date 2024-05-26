@@ -1,6 +1,6 @@
 {
     "results-hub": {
-        "master-node-name": "node0.net-test.rdma-prefetch-pg0.wisc.cloudlab.us",
+        "master-node-name": "ip-172-31-18-242.us-east-2.compute.internal",
         "local-pv-path": "/results-hub-log",
         "pv-name": "local-pv",
         "pvc-name": "local-pvc-for-rh",
@@ -11,10 +11,10 @@
 
     "execution": {
         "output-directory": "./execution",
-        "dockerhub-username": "shirou10086",
+        "dockerhub-username": "yizhuoliang",
         "dockerhub-repo-name": "jup2kub",
         "image-list-filename": "image_list.txt",
-        "n-docker-worker": "4"
+        "n-docker-worker": "10"
     },
 
     "jobs": {
@@ -25,9 +25,12 @@
     },
 
     "filesReadWrite": [
-        "W:./data/docOne.txt W:./data/docTwo.txt",
-        "R:./data/docOne.txt",
-        "R:./data/docTwo.txt",
-        "W:./data/docOne.txt W:./data/docTwo.txt"
+        "",
+        "",
+        "",
+        "",
+        "",
+        "W:./data/res5_from_r.json",
+        "R:./data/res5_from_r.json"
     ]
 }
