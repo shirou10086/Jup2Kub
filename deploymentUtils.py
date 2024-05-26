@@ -73,7 +73,7 @@ def create_pvc(pvc_name, storage_size, namespace):
             print(f"Exception when creating PersistentVolumeClaim: {e}")
             raise
 
-def deploy_resultsHub_to_statefulset(pvc_name, namespace):
+def xxx(pvc_name, namespace):
     config.load_kube_config()  # Load kubeconfig
     api_instance = client.AppsV1Api()
 
@@ -156,6 +156,76 @@ def deploy_resultsHub_to_statefulset(pvc_name, namespace):
         raise
 
     print("StatefulSet created.")
+
+# Testing purpose only, never restart, so the log is retained
+def deploy_resultsHub_to_statefulset(pvc_name, namespace):
+    config.load_kube_config()  # Load kubeconfig
+    api_instance = client.CoreV1Api()
+
+    # Define the Pod
+    pod = client.V1Pod(
+        api_version="v1",
+        kind="Pod",
+        metadata=client.V1ObjectMeta(
+            name="results-hub",
+            namespace=namespace,
+            annotations={"container.apparmor.security.beta.kubernetes.io/results-hub": "unconfined"}
+        ),
+        spec=client.V1PodSpec(
+            restart_policy='Never',  # Set restart policy to 'Never'
+            containers=[client.V1Container(
+                name="results-hub",
+                image="yizhuoliang/results-hub:latest",
+                volume_mounts=[client.V1VolumeMount(mount_path="/app/data", name="storage")],
+                ports=[client.V1ContainerPort(container_port=50051)]
+            )],
+            volumes=[
+                client.V1Volume(
+                    name="storage",
+                    persistent_volume_claim=client.V1PersistentVolumeClaimVolumeSource(claim_name=pvc_name)
+                )
+            ],
+            tolerations=[
+                client.V1Toleration(
+                    key="node-role.kubernetes.io/control-plane",
+                    operator="Exists",
+                    effect="NoSchedule"
+                )
+            ]
+        )
+    )
+
+    # Create the Pod
+    try:
+        api_instance.create_namespaced_pod(namespace=namespace, body=pod)
+        print(f"Pod 'results-hub' created in namespace '{namespace}'.")
+    except ApiException as e:
+        print(f"Exception when creating Pod: {e}")
+        raise
+
+    # Define and create a Service to expose the Pod
+    service = client.V1Service(
+        api_version="v1",
+        kind="Service",
+        metadata=client.V1ObjectMeta(
+            name="results-hub-service",
+            namespace=namespace
+        ),
+        spec=client.V1ServiceSpec(
+            selector={"app": "results-hub"},
+            ports=[client.V1ServicePort(port=30051, target_port=50051, node_port=30051)],
+            type="NodePort"
+        )
+    )
+
+    try:
+        api_instance.create_namespaced_service(namespace=namespace, body=service)
+        print(f"Service 'results-hub-service' created in namespace '{namespace}'.")
+    except ApiException as e:
+        print(f"Exception when creating Service: {e}")
+        raise
+
+    print("Pod and Service created.")
 
 def deploy_stateless_job(image_name, tag, namespace):
     config.load_kube_config()  # Load kubeconfig
