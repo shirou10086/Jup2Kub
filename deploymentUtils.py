@@ -104,7 +104,8 @@ def deploy_resultsHub_to_statefulset(pvc_name, namespace):
                         name="results-hub",
                         image="yizhuoliang/results-hub:latest",
                         volume_mounts=[client.V1VolumeMount(mount_path="/app/data", name="storage")],
-                        ports=[client.V1ContainerPort(container_port=50051)]
+                        ports=[client.V1ContainerPort(container_port=50051)],
+                        image_pull_policy="Always"
                     )],
                     volumes=[
                         client.V1Volume(
