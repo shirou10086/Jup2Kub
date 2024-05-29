@@ -8,7 +8,7 @@
         "pvc-storage-size": "500Mi",
         "namespace": "default"
     },
-
+    
     "execution": {
         "output-directory": "./execution",
         "dockerhub-username": "yizhuoliang",
@@ -20,7 +20,7 @@
     "jobs": {
         "jobs-pv-storage-size": "500Mi",
         "job-pvc-storage-size": "100Mi",
-        "data-dir-path": "/Users/coulson/Jup2Kub/example/data",
+        "data-dir-path": "/Jup2Kub/example/data",
         "namespace": "default"
     },
 
@@ -30,7 +30,7 @@
         "",
         "",
         "",
-        "W:./data/res5_from_r.json",
-        "R:./data/res5_from_r.json"
+        "W:./data/res5_from_r.json W:./data/sorted5.json",
+        "R:./data/res5_from_r.json R:./data/sorted5.json"
     ]
 }
