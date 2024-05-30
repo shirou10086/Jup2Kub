@@ -74,7 +74,7 @@ def gen_code_to_cell(filepath, track_list_path, waitForList):
 
     with open(filepath, 'r') as file:
         lines = file.readlines()
-    
+
     lines.insert(0, "import ResultsHub as rh\n")
 
     # Fetching variable code
@@ -139,7 +139,7 @@ def gen_code_to_all_cells(directory, track_list_path, conflict_list_path):
             filepath = os.path.join(directory, filename)
             gen_code_to_cell(filepath, track_list_path, all_conflicts[f"{cell_num}"])
 
-if __name__ == "__main__":
+'''if __name__ == "__main__":
     directory = '/path/to/your/cells'
     track_list_path = '/path/to/your/track/list.json'
-    gen_code_to_all_cells(directory, track_list_path)
+    gen_code_to_all_cells(directory, track_list_path)'''
