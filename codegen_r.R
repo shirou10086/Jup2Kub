@@ -9,18 +9,25 @@ track_variables <- function(code) {
     repeat_pattern <- "repeat\\s*\\{"
 
     assigns <- gregexpr(assign_pattern, code, perl = TRUE)
+    function_assigns <- gregexpr("\\b(\\w+)\\s*<-\\s*function\\s*\\(", code, perl = TRUE)
+
+    assigned_vars <- unique(regmatches(code, assigns)[[1]])
+    functions <- unique(regmatches(code, function_assigns)[[1]])
+    functions <- gsub("\\s*<-\\s*function\\s*\\(.*", "", functions)
+
     uses <- gregexpr(use_pattern, code, perl = TRUE)
     fors <- gregexpr(for_pattern, code, perl = TRUE)
     whiles <- gregexpr(while_pattern, code, perl = TRUE)
     repeats <- gregexpr(repeat_pattern, code, perl = TRUE)
 
-    assigned_vars <- unique(regmatches(code, assigns)[[1]])
     used_vars <- unique(regmatches(code, uses)[[1]])
     for_vars <- unique(regmatches(code, fors)[[1]])
     while_vars <- unique(regmatches(code, whiles)[[1]])
     repeat_vars <- unique(regmatches(code, repeats)[[1]])
 
     assigned_vars <- gsub("\\s*<-\\s*", "", assigned_vars)
+    assigned_vars <- setdiff(assigned_vars, functions)  # Exclude function definitions from regular variables
+
     for_vars <- gsub("for\\s*\\(|\\s+in.*", "", for_vars)
     while_vars <- gsub("while\\s*\\(|\\s*\\).*", "", while_vars)
     repeat_vars <- character()  # repeat does not declare variables like for and while
@@ -31,6 +38,8 @@ track_variables <- function(code) {
 
     list(global_vars = assigned_vars, used_vars = used_vars, loop_vars = c(for_vars, while_vars))
 }
+
+
 
 # Function to insert code into R script
 insert_code_to_cell <- function(filepath, previous_vars) {
@@ -95,9 +104,9 @@ insert_code_to_cell <- function(filepath, previous_vars) {
     submit_code <- "\n# SUBMIT CODE START\n"
     submit_code <- paste0(submit_code, sprintf("results_hub <- ResultsHubSubmission(%dL, host='results-hub-service.default.svc.cluster.local')\n", cell_number))
     #This line skipped all addvars need to remove and restore add function
-    #for (var in vars$global_vars) {
-        #submit_code <- paste0(submit_code, sprintf("results_hub$addVar('%s', %s)\n", var, var))
-    #}
+    for (var in vars$global_vars) {
+        submit_code <- paste0(submit_code, sprintf("results_hub$addVar('%s', %s)\n", var, var))
+    }
     submit_code <- paste0(submit_code, "results_hub$submit()\n")
     submit_code <- paste0(submit_code, sprintf("print('Submission Success for cell %d.')\n", cell_number))
     submit_code <- paste0(submit_code, "# SUBMIT CODE END\n")

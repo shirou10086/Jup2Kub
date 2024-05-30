@@ -6,7 +6,7 @@ import subprocess
 import sys
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
-
+from processfunction_r import process_directory
 #R packages
 from r2docker import get_version_r ,create_dockerfile_r
 # J2K packages
@@ -75,6 +75,7 @@ def main(skip_dockerization, notebook_path, output_dir, dockerhub_username, dock
         j2k_config = load_config('J2K_CONFIG.json')
         # STEP 1: Split and Run Static Analysis the notebook
         process_notebook(notebook_path, output_dir)
+        process_directory(output_dir)
         build_conflict_map(output_dir, j2k_config['filesReadWrite'])
 
         # STEP 2: Run variable dependency analysis & file conflicts analysis
@@ -173,7 +174,7 @@ def main(skip_dockerization, notebook_path, output_dir, dockerhub_username, dock
 
 if __name__ == '__main__':
     skip_dockerization = True if len(sys.argv) > 1 and sys.argv[1] == "skip" else False
-    notebook_path = sys.argv[2] if len(sys.argv) > 2 else './example/demo2.ipynb'
+    notebook_path = sys.argv[2] if len(sys.argv) > 2 else './example/RvarFunctions.ipynb'
 
     # Parse the configuration file
     j2k_config = load_config('J2K_CONFIG.json')
