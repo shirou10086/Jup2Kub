@@ -1,5 +1,3 @@
-
 #!/bin/bash
 input=("$@")
-echo -e "${#input[@]}
-${input[@]}" | ./example3
+echo -e "${#input[@]}\n${input[@]}" | ./example3
