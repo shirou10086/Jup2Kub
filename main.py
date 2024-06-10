@@ -121,7 +121,7 @@ def main(skip_dockerization, notebook_path, output_dir, dockerhub_username, dock
         # added max workers
         max_workers = max(int(n_docker_worker), len(os.listdir(output_dir)))
 
-        need_ubuntu = set(int(num) for num in j2k_config['ubuntu_image'])
+        need_ubuntu = set(int(num) for num in j2k_config['ubuntuImage'])
 
         with ThreadPoolExecutor(max_workers=max_workers) as executor:
             futures = []
