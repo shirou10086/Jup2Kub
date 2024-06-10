@@ -128,7 +128,7 @@ def main(skip_dockerization, notebook_path, output_dir, dockerhub_username, dock
 
             for filename in os.listdir(output_dir):
                 if re.match(r'cell\d+\.py$', filename):
-                    cell_num = int(filename.split('.')[0])
+                    cell_num = int(filename.split('.')[0][4:])
                     if cell_num in need_ubuntu:
                         futures.append(executor.submit(
                         dockerize_and_push, filename, dockerfiles_path, python_version, output_dir, dockerhub_username, dockerhub_repository, file_access_map.get(filename.split('.')[0], False)), true)
