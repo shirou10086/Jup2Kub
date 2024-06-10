@@ -12,7 +12,7 @@ from r2docker import get_version_r ,create_dockerfile_r
 # J2K packages
 from codegen import gen_code_to_all_cells
 import py2docker
-from py2docker import build_docker_image, create_dockerfile
+from py2docker import build_docker_image, create_dockerfile, create_ubuntu_dockerfile
 from deploymentUtils import *
 from splitnotebook import process_notebook
 from checkfileaccess import generate_file_access_report
@@ -36,12 +36,15 @@ def push_to_docker_hub(image_tag):
     except subprocess.CalledProcessError as e:
         print(f"Failed to push {image_tag} to Docker Hub: {e}")
 
-def dockerize_and_push(filename, dockerfiles_path, python_version, output_dir, dockerhub_username, dockerhub_repository, file_accessed):
+def dockerize_and_push(filename, dockerfiles_path, python_version, output_dir, dockerhub_username, dockerhub_repository, file_accessed, run_other_languages):
     """
     Packs the functions for creating Dockerfile, building image, and pushing to Docker Hub.
     One function in one thread. Now includes a check for file access.
     """
-    dockerfile_path = create_dockerfile(filename, 'requirements.txt', dockerfiles_path, python_version)
+    if not run_other_languages:
+        dockerfile_path = create_dockerfile(filename, 'requirements.txt', dockerfiles_path, python_version)
+    else:
+        dockerfile_path = create_ubuntu_dockerfile(filename, 'requirements.txt', dockerfiles_path, python_version)
     image_name_tag = f"{dockerhub_username}/{dockerhub_repository}:{filename.split('.')[0]}"
     build_docker_image(dockerfile_path, image_name_tag, output_dir)
     push_to_docker_hub(image_name_tag)
@@ -113,13 +116,20 @@ def main(skip_dockerization, notebook_path, output_dir, dockerhub_username, dock
         # added max workers
         max_workers = max(int(n_docker_worker), len(os.listdir(output_dir)))
 
+        need_ubuntu = set(int(num) for num in j2k_config['ubuntu_image'])
+
         with ThreadPoolExecutor(max_workers=max_workers) as executor:
             futures = []
 
             for filename in os.listdir(output_dir):
                 if re.match(r'cell\d+\.py$', filename):
-                    futures.append(executor.submit(
-                        dockerize_and_push, filename, dockerfiles_path, python_version, output_dir, dockerhub_username, dockerhub_repository, file_access_map.get(filename.split('.')[0], False)))
+                    cell_num = int(filename.split('.')[0])
+                    if cell_num in need_ubuntu:
+                        futures.append(executor.submit(
+                        dockerize_and_push, filename, dockerfiles_path, python_version, output_dir, dockerhub_username, dockerhub_repository, file_access_map.get(filename.split('.')[0], False)), true)
+                    else:
+                        futures.append(executor.submit(
+                        dockerize_and_push, filename, dockerfiles_path, python_version, output_dir, dockerhub_username, dockerhub_repository, file_access_map.get(filename.split('.')[0], False)), false)
                 elif filename.endswith('.R') and filename.startswith('cell'):
                     futures.append(executor.submit(
                         dockerize_and_push_r, filename, dockerfiles_path, output_dir, dockerhub_username, dockerhub_repository, file_access_map.get(filename.split('.')[0], False)))

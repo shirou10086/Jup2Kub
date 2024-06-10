@@ -32,5 +32,7 @@
         "",
         "W:./data/res5_from_r.json W:./data/sorted5.json",
         "R:./data/res5_from_r.json R:./data/sorted5.json"
-    ]
+    ],
+
+    "ubuntuImage": ["1", "2"]
 }

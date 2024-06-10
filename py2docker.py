@@ -26,6 +26,26 @@ def create_dockerfile(file_name, requirements_path, dockerfiles_path, python_ver
         file.write(dockerfile_content)
     return dockerfile_path
 
+def create_ubuntu_dockerfile(file_name, requirements_path, dockerfiles_path, python_version):
+    # Define the Dockerfile content using Ubuntu as the base image and installing Python
+    dockerfile_content = f'''
+    FROM ubuntu:latest
+    RUN apt-get update && apt-get install -y python{python_version} python{python_version}-pip
+    WORKDIR /app
+    COPY {file_name} /app
+    COPY ResultsHub.py /app
+    COPY J2kResultsHub_pb2.py /app
+    COPY J2kResultsHub_pb2_grpc.py /app
+    COPY {requirements_path} /app
+    RUN pip install --ignore-installed -r requirements.txt
+    CMD ["python{python_version}", "/app/{os.path.basename(file_name)}"]
+    '''
+    
+    dockerfile_path = os.path.join(dockerfiles_path, f"Dockerfile_{os.path.splitext(file_name)[0]}")
+    with open(dockerfile_path, 'w') as file:
+        file.write(dockerfile_content)
+    return dockerfile_path
+
 def build_docker_image(dockerfile_path, image_tag, context_path):
     print('creating docker')
     try:
