@@ -58,6 +58,11 @@ def dockerize_and_push_r(filename, dockerfiles_path, output_dir, dockerhub_usern
     push_to_docker_hub(image_name_tag)
     return (f"{dockerhub_username}/{dockerhub_repository}", filename.split('.')[0], file_accessed)
 
+def has_r_files(output_dir):
+    for file_name in os.listdir(output_dir):
+        if file_name.startswith("cell") and file_name.endswith(".r"):
+            return True
+    return False
 
 def main(skip_dockerization, notebook_path, output_dir, dockerhub_username, dockerhub_repository, image_list_path, n_docker_worker):
 
@@ -87,10 +92,10 @@ def main(skip_dockerization, notebook_path, output_dir, dockerhub_username, dock
         conflict_list_path = os.path.join(output_dir, 'conflict_list.json')
         gen_code_to_all_cells(output_dir, track_list_path, conflict_list_path)
         # for R
-        result = subprocess.run(['Rscript', "codegen_r.R", f"{output_dir}"], check=True, capture_output=True, text=True)
-        print("R script output:")
-        print(result.stdout)
-
+        if has_r_files(output_dir):
+            result = subprocess.run(['Rscript', "codegen_r.R", output_dir], check=True, capture_output=True, text=True)
+            print("R script output:")
+            print(result.stdout)
         #STEP2.1: run file access check analysis
         directory_path=j2k_config['execution']['output-directory']
         report_file_path = os.path.join(directory_path, "fileaccess.txt")
@@ -184,7 +189,7 @@ def main(skip_dockerization, notebook_path, output_dir, dockerhub_username, dock
 
 if __name__ == '__main__':
     skip_dockerization = True if len(sys.argv) > 1 and sys.argv[1] == "skip" else False
-    notebook_path = sys.argv[2] if len(sys.argv) > 2 else './example/Rexample.ipynb'
+    notebook_path = sys.argv[2] if len(sys.argv) > 2 else './example/wrapper/wrapper.ipynb'
 
     # Parse the configuration file
     j2k_config = load_config('J2K_CONFIG.json')
