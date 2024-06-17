@@ -30,7 +30,7 @@ def create_ubuntu_dockerfile(file_name, requirements_path, dockerfiles_path, pyt
     # Define the Dockerfile content using Ubuntu as the base image and installing Python
     dockerfile_content = f'''
     FROM ubuntu:22.04
-    RUN export DEBIAN_FRONTEND=noninteractive
+    ENV DEBIAN_FRONTEND=noninteractive
     RUN echo 'tzdata tzdata/Areas select Etc' | debconf-set-selections
     RUN echo 'tzdata tzdata/Zones/Etc select UTC' | debconf-set-selections
     RUN apt-get update && apt-get install -y software-properties-common
