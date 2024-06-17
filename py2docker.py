@@ -29,7 +29,7 @@ def create_dockerfile(file_name, requirements_path, dockerfiles_path, python_ver
 def create_ubuntu_dockerfile(file_name, requirements_path, dockerfiles_path, python_version):
     # Define the Dockerfile content using Ubuntu as the base image and installing Python
     dockerfile_content = f'''
-    FROM ubuntu:20.04
+    FROM ubuntu:22.04
     RUN apt-get update && apt-get install -y python{python_version} python{python_version}-pip
     WORKDIR /app
     COPY {file_name} /app
