@@ -30,14 +30,19 @@ def create_ubuntu_dockerfile(file_name, requirements_path, dockerfiles_path, pyt
     # Define the Dockerfile content using Ubuntu as the base image and installing Python
     dockerfile_content = f'''
     FROM ubuntu:22.04
-    RUN apt-get update && apt-get install -y python{python_version} python{python_version}-pip
+    RUN export DEBIAN_FRONTEND=noninteractive
+    RUN apt-get update && apt-get install -y software-properties-common
+    RUN add-apt-repository -y ppa:deadsnakes/ppa
+    RUN apt-get update
+    RUN apt-get install -y python{python_version} python{python_version}-venv python{python_version}-dev
+    RUN python{python_version} -m ensurepip
     WORKDIR /app
     COPY {file_name} /app
     COPY ResultsHub.py /app
     COPY J2kResultsHub_pb2.py /app
     COPY J2kResultsHub_pb2_grpc.py /app
     COPY {requirements_path} /app
-    RUN pip install --ignore-installed -r requirements.txt
+    RUN pip{python_version} install --ignore-installed -r requirements.txt
     CMD ["python{python_version}", "/app/{os.path.basename(file_name)}"]
     '''
     
