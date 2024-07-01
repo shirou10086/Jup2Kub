@@ -1,2 +1,5 @@
 execution/
 *.pyc
+example/.ipynb_checkpoints/wrapper-checkpoint.ipynb
+example/.ipynb_checkpoints/Pegasusexample-checkpoint.ipynb
+example/.ipynb_checkpoints/timecomplexity-checkpoint.ipynb

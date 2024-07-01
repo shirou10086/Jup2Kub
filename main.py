@@ -189,7 +189,7 @@ def main(skip_dockerization, notebook_path, output_dir, dockerhub_username, dock
 
 if __name__ == '__main__':
     skip_dockerization = True if len(sys.argv) > 1 and sys.argv[1] == "skip" else False
-    notebook_path = sys.argv[2] if len(sys.argv) > 2 else './example/wrapper/wrapper.ipynb'
+    notebook_path = sys.argv[2] if len(sys.argv) > 2 else './example/wrapper.ipynb'
 
     # Parse the configuration file
     j2k_config = load_config('J2K_CONFIG.json')
