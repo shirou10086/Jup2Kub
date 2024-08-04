@@ -4,7 +4,9 @@ import json
 import re
 
 # This file contains the functions for Variable Dependency Analysis and Codegen into Cells
-
+def load_config(file_path):
+    with open(file_path, 'r') as file:
+        return json.load(file)
 class VariableTracker(ast.NodeVisitor):
     def __init__(self):
         super().__init__()
@@ -68,7 +70,7 @@ class VariableTracker(ast.NodeVisitor):
         """The generic visit method will ensure any child nodes are visited."""
         ast.NodeVisitor.generic_visit(self, node)
 
-def gen_code_to_cell(filepath, track_list_path, waitForList):
+def gen_code_to_cell(filepath, track_list_path, all_relations_path, waitForList):
     if not re.match(r'cell\d+\.py$', os.path.basename(filepath)):
         return
 
@@ -84,11 +86,22 @@ def gen_code_to_cell(filepath, track_list_path, waitForList):
 
     cell_number = int(re.search(r'cell(\d+)\.py$', os.path.basename(filepath)).group(1))
 
+    # Read and update variable track list
     if os.path.exists(track_list_path):
         with open(track_list_path, 'r') as file:
             variable_track_list = json.load(file)
     else:
         variable_track_list = {}
+
+    # Read and update all-relation data (currently used for stream processing scheduling)
+    if os.path.exists(all_relations_path):
+        with open(all_relations_path, 'r') as file:
+            all_relations = json.load(file)
+    else:
+        all_relations = {}
+
+    # Prepare all-rel update for current cell
+    current_cell_allrel = all_relations.get(str(cell_number), {})
 
     fetch_and_wait_statements = []
     for var, used_line in tracker.used_vars.items():
@@ -97,6 +110,16 @@ def gen_code_to_cell(filepath, track_list_path, waitForList):
             if used_line < defined_line:
                 fetch_code = f"{var} = rh.fetchVarResult('{var}', varAncestorCell={variable_track_list[var]}, host='results-hub-service.default.svc.cluster.local')"
                 fetch_and_wait_statements.append(fetch_code)
+                # Update all-rel data for variable usage across cells
+                all_relations[str(variable_track_list[var])][var].append(str(cell_number))
+
+    # Update all-rel for current cell's variables
+    for var in tracker.global_vars:
+        if var in current_cell_allrel:
+            current_cell_allrel[var].append(str(cell_number))
+        else:
+            current_cell_allrel[var] = [str(cell_number)]
+    all_relations[str(cell_number)] = current_cell_allrel
 
     # Add waiting for cell code according to the waitForList
     for waitFor in waitForList:
@@ -122,24 +145,45 @@ def gen_code_to_cell(filepath, track_list_path, waitForList):
     with open(filepath, 'w') as file:
         file.write(updated_content)
 
-    # Update the track list for global variables
+    # Save the updated variable track list
     for var, line_no in tracker.global_vars.items():
         variable_track_list[var] = cell_number
 
     with open(track_list_path, 'w') as file:
         json.dump(variable_track_list, file, indent=4)
 
-def gen_code_to_all_cells(directory, track_list_path, conflict_list_path):
+    # Save the updated all-rel data
+    with open(all_relations_path, 'w') as file:
+        json.dump(all_relations, file, indent=4)
+
+def gen_code_to_all_cells(directory, track_list_path, conflict_list_path, all_relations_path):
     # read the conflict list file
     with open(os.path.join(conflict_list_path)) as f:
         all_conflicts = json.load(f)
+    
+    j2k_config = load_config('J2K_CONFIG.json')
+    # SPECIAL HANDLING FOR STREAM PROCESSING
+    skip_cell1 = False
+    if 'streamProcessing' in j2k_config:
+        recursive_vars = j2k_config['streamProcessing']['recursiveVars']
+        initial_track_list = {var: 1 for var in recursive_vars}
+        with open(track_list_path, 'w') as f:
+            json.dump(initial_track_list, f, indent=4)
+        inital_all_rels = {"1": {var: [] for var in recursive_vars}}
+        with open(all_relations_path, 'w') as f:
+            json.dump(inital_all_rels, f, indent=4)
+        skip_cell1 = True
+
     for filename in os.listdir(directory):
         if filename.startswith('cell'):
             cell_num = int(filename[len('cell'):].split('.')[0])
+            if skip_cell1 and cell_num == 1:
+                continue
             filepath = os.path.join(directory, filename)
-            gen_code_to_cell(filepath, track_list_path, all_conflicts[f"{cell_num}"])
+            gen_code_to_cell(filepath, track_list_path, all_relations_path, all_conflicts[f"{cell_num}"])
 
-'''if __name__ == "__main__":
-    directory = '/path/to/your/cells'
-    track_list_path = '/path/to/your/track/list.json'
-    gen_code_to_all_cells(directory, track_list_path)'''
+# if __name__ == "__main__":
+#     directory = '/path/to/your/cells'
+#     track_list_path = '/path/to/your/track/list.json'
+#     all_relations_path = '/path/to/your/byproduct.json'
+#     gen_code_to_all_cells(directory, track_list_path, all_relations_path)

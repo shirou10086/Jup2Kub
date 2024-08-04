@@ -5,6 +5,7 @@ import re
 import subprocess
 import sys
 import time
+import shutil
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from processfunction import process_directory
 #R packages
@@ -48,7 +49,12 @@ def dockerize_and_push(filename, dockerfiles_path, python_version, output_dir, d
     image_name_tag = f"{dockerhub_username}/{dockerhub_repository}:{filename.split('.')[0]}"
     build_docker_image(dockerfile_path, image_name_tag, output_dir)
     push_to_docker_hub(image_name_tag)
-    return (f"{dockerhub_username}/{dockerhub_repository}", filename.split('.')[0], file_accessed)
+    j2k_config = load_config["J2K_CONFIG.json"]
+    if 'streamProcessing' in j2k_config:
+        stream_cells = set(j2k_config["streamProcessing"]["processor-cells"]).add(1)
+        if int(filename.split('.')[0]) in stream_cells:
+            return (f"{dockerhub_username}/{dockerhub_repository}", filename.split('.')[0], file_accessed, True)
+    return (f"{dockerhub_username}/{dockerhub_repository}", filename.split('.')[0], file_accessed, False)
 
 def dockerize_and_push_r(filename, dockerfiles_path, output_dir, dockerhub_username, dockerhub_repository, file_accessed):
     #TODO: install_packages.R should have more descriptive name, and should goes to the config
@@ -90,13 +96,14 @@ def main(skip_dockerization, notebook_path, output_dir, dockerhub_username, dock
         # for Python
         track_list_path = os.path.join(output_dir, 'variable_track_list.txt')
         conflict_list_path = os.path.join(output_dir, 'conflict_list.json')
-        gen_code_to_all_cells(output_dir, track_list_path, conflict_list_path)
+        all_relation_path = os.path.join(output_dir, "all_relations.json")
+        gen_code_to_all_cells(output_dir, track_list_path, conflict_list_path, all_relation_path)
         # for R
         if has_r_files(output_dir):
             result = subprocess.run(['Rscript', "codegen_r.R", output_dir], check=True, capture_output=True, text=True)
             print("R script output:")
             print(result.stdout)
-        #STEP2.1: run file access check analysis
+        #STEP2.1: run file access check analysis (this is for deployment decisions, not for shared files)
         directory_path=j2k_config['execution']['output-directory']
         report_file_path = os.path.join(directory_path, "fileaccess.txt")
         generate_file_access_report(directory_path,report_file_path,"cell", ".py" , 10)
@@ -165,6 +172,11 @@ def main(skip_dockerization, notebook_path, output_dir, dockerhub_username, dock
     create_pv(node_name, local_path, pv_name, pv_storage_size)
     create_pvc(pvc_name, pvc_storage_size, namespace)
 
+    # copy the all_relation file into rh's log, this should be persisted
+    destination_dir = os.path.dirname(j2k_config['jobs']['data-dir-path'])
+    os.makedirs(destination_dir, exist_ok=True)
+    shutil.copy(os.path.join(output_dir, "all_relations.json"), j2k_config['jobs']['data-dir-path'])
+
     # deploy ResultsHub
     deploy_resultsHub_to_statefulset(pvc_name, namespace)
     time.sleep(3) # short sleep waiting results hub to be running
@@ -180,6 +192,9 @@ def main(skip_dockerization, notebook_path, output_dir, dockerhub_username, dock
 
     # deploy the jobs
     for image_tag_access in job_info_list:
+        if image_tag_access[3]:
+            # stream emitter or processor
+            deploy_stream_processor_deployment(image_name=image_tag_access[0], tag=image_tag_access[1], namespace=namespace)
         if image_tag_access[2]:
             deploy_file_access_job(image_name=image_tag_access[0], tag=image_tag_access[1], namespace=namespace, pvc_name="pvcforjob")
         else:

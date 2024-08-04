@@ -25,8 +25,15 @@
     },
 
     "filesReadWrite": [
+        "",
+        "",
         ""
     ],
 
-    "ubuntuImage": ["1"]
+    "ubuntuImage": [],
+
+    "streamProcessing": {
+        "recursiveVars": ["x"],
+        "processor-cells": [2, 3]
+    }
 }

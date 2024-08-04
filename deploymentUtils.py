@@ -268,6 +268,51 @@ def deploy_stateless_job(image_name, tag, namespace):
         print(f"Exception when creating Job: {e}")
         raise
 
+def deploy_stream_processor_deployment(image_name, tag, namespace):
+    config.load_kube_config()  # Load kubeconfig
+    api_instance = client.AppsV1Api()
+
+    image_name_no_repo = image_name.split('/', 1)[1]
+    deployment_name = f"j2k-deployment-{image_name_no_repo}-{tag}" # note we remove the repo name here
+
+    # Define the Deployment
+    deployment = client.V1Deployment(
+        api_version="apps/v1",
+        kind="Deployment",
+        metadata=client.V1ObjectMeta(name=deployment_name, namespace=namespace),
+        spec=client.V1DeploymentSpec(
+            replicas=1,  # Number of replicas
+            selector=client.V1LabelSelector(
+                match_labels={"app": deployment_name}
+            ),
+            template=client.V1PodTemplateSpec(
+                metadata=client.V1ObjectMeta(labels={"app": deployment_name}),
+                spec=client.V1PodSpec(
+                    containers=[client.V1Container(
+                        name="jup2kub-container",
+                        image=f"{image_name}:{tag}",
+                        image_pull_policy="Always"
+                    )],
+                    restart_policy="Always",  # Ensure the container restarts on termination
+                    tolerations=[ # Add this toleration because we do want the master node to run cells as well
+                        client.V1Toleration(
+                            key="node-role.kubernetes.io/control-plane",
+                            operator="Exists",
+                            effect="NoSchedule"
+                        )
+                    ]
+                )
+            )
+        )
+    )
+
+    try:
+        api_instance.create_namespaced_deployment(namespace=namespace, body=deployment)
+        print(f"Deployment '{deployment_name}' created in namespace '{namespace}'.")
+    except ApiException as e:
+        print(f"Exception when creating Deployment: {e}")
+        raise
+
 def deploy_file_access_job(image_name, tag, namespace, pvc_name):
     config.load_kube_config()  # Load kubeconfig
     api_instance = client.BatchV1Api()

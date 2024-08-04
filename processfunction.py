@@ -75,7 +75,7 @@ def process_directory(directory):
     """
     Process all R and Python files under output directory, appending each file's function definitions only to subsequent files.
     """
-    files = sorted(glob.glob(os.path.join(directory, '*.R')) + glob.glob(os.path.join(directory, '*.py')))
+    files = sorted(glob.glob(os.path.join(directory, 'cell*.R')) + glob.glob(os.path.join(directory, 'cell*.py')))
     for index, source_file in enumerate(files):
         source_functions = extract_functions_from_file(source_file)
         prepend_functions_to_subsequent_files(source_functions, files, index)
