@@ -71,6 +71,35 @@ def has_r_files(output_dir):
             return True
     return False
 
+def make_while_true_python_files(directory, number_list):
+    # Create the full path for excluding "cell1.py"
+    exclude_file = os.path.join(directory, "cell1.py")
+    
+    # Loop through all files in the directory
+    for filename in os.listdir(directory):
+        filepath = os.path.join(directory, filename)
+        
+        # Check if it's a python file and not the excluded file
+        if filepath.endswith(".py") and filepath != exclude_file:
+            # Extract the number from the filename and check if it's in the list
+            try:
+                file_number = int(filename.replace("cell", "").replace(".py", ""))
+                if file_number in number_list:
+                    # Read the original content
+                    with open(filepath, 'r') as file:
+                        lines = file.readlines()
+                    
+                    # Add indentation and modify the content
+                    indented_lines = ['    ' + line for line in lines]
+                    modified_content = "while True:\n" + "".join(indented_lines)
+                    
+                    # Write the modified content back to the file
+                    with open(filepath, 'w') as file:
+                        file.write(modified_content)
+            except ValueError:
+                # Skip files that don't have a proper number format
+                continue
+
 def main(skip_dockerization, notebook_path, output_dir, dockerhub_username, dockerhub_repository, image_list_path, n_docker_worker):
 
     # STEP 0: Check if we can skip the codegen & dockerization phase
@@ -121,6 +150,10 @@ def main(skip_dockerization, notebook_path, output_dir, dockerhub_username, dock
             if rw_string:  # checks if the string is non-empty
                 file_access_map[f"cell{cell_num}"] = True
 
+        # STEP 2.9 For Stream Processing: add big for-loops for stream processors
+        if "streamProcessing" in j2k_config:
+            processor_cells = j2k_config["streamProcessing"]["processor-cells"]
+            make_while_true_python_files(output_dir, processor_cells)
 
         # STEP 3: Dockerize the files
         dockerfiles_path = os.path.join(output_dir, "docker")
@@ -156,8 +189,6 @@ def main(skip_dockerization, notebook_path, output_dir, dockerhub_username, dock
         print("========== Jobs Info ==========")
         for job_info in job_info_list:
             print(f"Repository: {job_info[0]}, Tag: {job_info[1]}, File Accessed: {job_info[2]}")
-
-
 
 
     # STEP 5: Deploy J2K's control plane: PV, PVC, and ResultsHub
