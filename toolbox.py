@@ -40,6 +40,13 @@ def delete_all_resources():
         print(f"Failed to delete pods: {e}")
 
     try:
+        # Delete all Deployments
+        apps_v1.delete_collection_namespaced_deployment(namespace=namespace)
+        print(f"All deployments deleted in namespace {namespace}.")
+    except ApiException as e:
+        print(f"Failed to delete deployments: {e}")
+
+    try:
         # Delete all StatefulSets
         apps_v1.delete_collection_namespaced_stateful_set(namespace=namespace)
         print(f"All statefulsets deleted in namespace {namespace}.")
