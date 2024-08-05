@@ -52,7 +52,7 @@ def dockerize_and_push(filename, dockerfiles_path, python_version, output_dir, d
     j2k_config = load_config("J2K_CONFIG.json")
     if 'streamProcessing' in j2k_config:
         stream_cells = set(j2k_config["streamProcessing"]["processor-cells"]).add(1)
-        if int(filename.split('.')[0]) in stream_cells:
+        if int(filename.split('.')[0][4:]) in stream_cells:
             return (f"{dockerhub_username}/{dockerhub_repository}", filename.split('.')[0], file_accessed, True)
     return (f"{dockerhub_username}/{dockerhub_repository}", filename.split('.')[0], file_accessed, False)
 
