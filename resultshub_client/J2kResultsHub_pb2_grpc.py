@@ -29,6 +29,11 @@ class ResultsHubStub(object):
                 request_serializer=J2kResultsHub__pb2.WaitCellRequest.SerializeToString,
                 response_deserializer=J2kResultsHub__pb2.Empty.FromString,
                 )
+        self.SubmitRecursiveVars = channel.unary_unary(
+                '/J2KResultsHub.ResultsHub/SubmitRecursiveVars',
+                request_serializer=J2kResultsHub__pb2.VarResults.SerializeToString,
+                response_deserializer=J2kResultsHub__pb2.Empty.FromString,
+                )
         self.SayHello = channel.unary_unary(
                 '/J2KResultsHub.ResultsHub/SayHello',
                 request_serializer=J2kResultsHub__pb2.HelloRequest.SerializeToString,
@@ -60,6 +65,13 @@ class ResultsHubServicer(object):
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
+    def SubmitRecursiveVars(self, request, context):
+        """for stream processing 
+        """
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
     def SayHello(self, request, context):
         """The Ping-Pong service for cluster testing, remove in future
         """
@@ -83,6 +95,11 @@ def add_ResultsHubServicer_to_server(servicer, server):
             'WaitForCell': grpc.unary_unary_rpc_method_handler(
                     servicer.WaitForCell,
                     request_deserializer=J2kResultsHub__pb2.WaitCellRequest.FromString,
+                    response_serializer=J2kResultsHub__pb2.Empty.SerializeToString,
+            ),
+            'SubmitRecursiveVars': grpc.unary_unary_rpc_method_handler(
+                    servicer.SubmitRecursiveVars,
+                    request_deserializer=J2kResultsHub__pb2.VarResults.FromString,
                     response_serializer=J2kResultsHub__pb2.Empty.SerializeToString,
             ),
             'SayHello': grpc.unary_unary_rpc_method_handler(
@@ -147,6 +164,23 @@ class ResultsHub(object):
             metadata=None):
         return grpc.experimental.unary_unary(request, target, '/J2KResultsHub.ResultsHub/WaitForCell',
             J2kResultsHub__pb2.WaitCellRequest.SerializeToString,
+            J2kResultsHub__pb2.Empty.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
+    def SubmitRecursiveVars(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/J2KResultsHub.ResultsHub/SubmitRecursiveVars',
+            J2kResultsHub__pb2.VarResults.SerializeToString,
             J2kResultsHub__pb2.Empty.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)

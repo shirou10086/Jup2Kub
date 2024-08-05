@@ -97,7 +97,8 @@ def main(skip_dockerization, notebook_path, output_dir, dockerhub_username, dock
         track_list_path = os.path.join(output_dir, 'variable_track_list.txt')
         conflict_list_path = os.path.join(output_dir, 'conflict_list.json')
         all_relation_path = os.path.join(output_dir, "all_relations.json")
-        gen_code_to_all_cells(output_dir, track_list_path, conflict_list_path, all_relation_path)
+        ancestor_track_path = os.path.join(output_dir, "ancestors.json")
+        gen_code_to_all_cells(output_dir, track_list_path, conflict_list_path, all_relation_path, ancestor_track_path)
         # for R
         if has_r_files(output_dir):
             result = subprocess.run(['Rscript', "codegen_r.R", output_dir], check=True, capture_output=True, text=True)
@@ -173,9 +174,16 @@ def main(skip_dockerization, notebook_path, output_dir, dockerhub_username, dock
     create_pvc(pvc_name, pvc_storage_size, namespace)
 
     # copy the all_relation file into rh's log, this should be persisted
-    destination_dir = os.path.dirname(j2k_config['jobs']['data-dir-path'])
-    os.makedirs(destination_dir, exist_ok=True)
-    shutil.copy(os.path.join(output_dir, "all_relations.json"), j2k_config['jobs']['data-dir-path'])
+    if "streamProcessing" in j2k_config:
+        data_dir = j2k_config['jobs']['data-dir-path']
+        os.makedirs(data_dir, exist_ok=True)
+        shutil.copy(os.path.join(output_dir, "all_relations.json"), data_dir)
+        # also dump the streamProcessing section there
+        with open(os.path.join(data_dir, "streamInfo.json"), 'w') as f:
+                json.dump(j2k_config["streamProcessing"], f, indent=4)
+        # also copy the ancestor info
+        shutil.copy(os.path.join(output_dir, "ancestors.json"), data_dir)
+        
 
     # deploy ResultsHub
     deploy_resultsHub_to_statefulset(pvc_name, namespace)

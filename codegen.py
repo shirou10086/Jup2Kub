@@ -70,7 +70,7 @@ class VariableTracker(ast.NodeVisitor):
         """The generic visit method will ensure any child nodes are visited."""
         ast.NodeVisitor.generic_visit(self, node)
 
-def gen_code_to_cell(filepath, track_list_path, all_relations_path, waitForList):
+def gen_code_to_cell(filepath, track_list_path, all_relations_path, ancestor_track_path, waitForList):
     if not re.match(r'cell\d+\.py$', os.path.basename(filepath)):
         return
 
@@ -100,6 +100,13 @@ def gen_code_to_cell(filepath, track_list_path, all_relations_path, waitForList)
     else:
         all_relations = {}
 
+    if os.path.exists(ancestor_track_path):
+        with open(ancestor_track_path, 'r') as file:
+            ancestor_track = json.load(file)
+    else:
+        ancestor_track = {}
+    current_cell_ancstors = []
+
     # Prepare all-rel update for current cell
     current_cell_allrel = all_relations.get(str(cell_number), {})
 
@@ -112,6 +119,7 @@ def gen_code_to_cell(filepath, track_list_path, all_relations_path, waitForList)
                 fetch_and_wait_statements.append(fetch_code)
                 # Update all-rel data for variable usage across cells
                 all_relations[str(variable_track_list[var])][var].append(str(cell_number))
+                current_cell_ancstors.append(variable_track_list[var])
 
     # Update all-rel for current cell's variables
     for var in tracker.global_vars:
@@ -155,8 +163,12 @@ def gen_code_to_cell(filepath, track_list_path, all_relations_path, waitForList)
     # Save the updated all-rel data
     with open(all_relations_path, 'w') as file:
         json.dump(all_relations, file, indent=4)
+    
+    ancestor_track[str(cell_number)] = current_cell_ancstors
+    with open(ancestor_track_path, 'w') as file:
+        json.dump(ancestor_track, file, indent=4)
 
-def gen_code_to_all_cells(directory, track_list_path, conflict_list_path, all_relations_path):
+def gen_code_to_all_cells(directory, track_list_path, conflict_list_path, all_relations_path, ancestor_track_path):
     # read the conflict list file
     with open(os.path.join(conflict_list_path)) as f:
         all_conflicts = json.load(f)
@@ -180,7 +192,7 @@ def gen_code_to_all_cells(directory, track_list_path, conflict_list_path, all_re
             if skip_cell1 and cell_num == 1:
                 continue
             filepath = os.path.join(directory, filename)
-            gen_code_to_cell(filepath, track_list_path, all_relations_path, all_conflicts[f"{cell_num}"])
+            gen_code_to_cell(filepath, track_list_path, all_relations_path, ancestor_track_path, all_conflicts[f"{cell_num}"])
 
 # if __name__ == "__main__":
 #     directory = '/path/to/your/cells'
