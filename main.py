@@ -49,7 +49,7 @@ def dockerize_and_push(filename, dockerfiles_path, python_version, output_dir, d
     image_name_tag = f"{dockerhub_username}/{dockerhub_repository}:{filename.split('.')[0]}"
     build_docker_image(dockerfile_path, image_name_tag, output_dir)
     push_to_docker_hub(image_name_tag)
-    j2k_config = load_config["J2K_CONFIG.json"]
+    j2k_config = load_config("J2K_CONFIG.json")
     if 'streamProcessing' in j2k_config:
         stream_cells = set(j2k_config["streamProcessing"]["processor-cells"]).add(1)
         if int(filename.split('.')[0]) in stream_cells:
