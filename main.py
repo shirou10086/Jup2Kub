@@ -204,7 +204,7 @@ def main(skip_dockerization, notebook_path, output_dir, dockerhub_username, dock
         if image_tag_access[3]:
             # stream emitter or processor
             deploy_stream_processor_deployment(image_name=image_tag_access[0], tag=image_tag_access[1], namespace=namespace)
-        if image_tag_access[2]:
+        elif image_tag_access[2]:
             deploy_file_access_job(image_name=image_tag_access[0], tag=image_tag_access[1], namespace=namespace, pvc_name="pvcforjob")
         else:
             deploy_stateless_job(image_name=image_tag_access[0], tag=image_tag_access[1], namespace=namespace)
