@@ -288,7 +288,6 @@ def deploy_stream_processor_deployment(image_name, tag, namespace):
             template=client.V1PodTemplateSpec(
                 metadata=client.V1ObjectMeta(labels={"app": deployment_name}),
                 spec=client.V1PodSpec(
-                    host_network=True,
                     containers=[client.V1Container(
                         name="jup2kub-container",
                         image=f"{image_name}:{tag}",
