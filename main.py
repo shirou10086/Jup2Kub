@@ -176,6 +176,7 @@ def main(skip_dockerization, notebook_path, output_dir, dockerhub_username, dock
 
     # copy the all_relation file into rh's log, this should be persisted
     if "streamProcessing" in j2k_config:
+        print("Copying stream info to RH's log!")
         data_dir = j2k_config['jobs']['data-dir-path']
         os.makedirs(data_dir, exist_ok=True)
         shutil.copy(os.path.join(output_dir, "all_relations.json"), data_dir)
