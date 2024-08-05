@@ -166,6 +166,8 @@ def process_notebook(notebook_path, output_directory):
     save_r_packages(r_packages, output_directory)
 #process py files:
     dependencies = filter_non_standard_libraries(imports_names_py)
+    if 'ResultsHub' in dependencies:
+        dependencies.remove('ResultsHub')
     save_requirements(dependencies, output_directory)
 #adding the imports for both R and py
     save_cells_to_files(notebook, output_directory, imports_statements_py,r_packages)
