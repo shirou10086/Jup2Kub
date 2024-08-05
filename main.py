@@ -179,15 +179,15 @@ def main(skip_dockerization, notebook_path, output_dir, dockerhub_username, dock
     # copy the all_relation file into rh's log, this should be persisted
     if "streamProcessing" in j2k_config:
         print("Copying stream info to RH's log!")
-        data_dir = j2k_config['jobs']['data-dir-path']
-        os.makedirs(data_dir, exist_ok=True)
-        shutil.copy(os.path.join(output_dir, "all_relations.json"), data_dir)
-        print("Copied {} to {}", os.path.join(output_dir, "all_relations.json"), data_dir)
+        rh_data_dir = j2k_config['jobs']["local-pv-path"]
+        os.makedirs(rh_data_dir, exist_ok=True)
+        shutil.copy(os.path.join(output_dir, "all_relations.json"), rh_data_dir)
+        print("Copied {} to {}", os.path.join(output_dir, "all_relations.json"), rh_data_dir)
         # also dump the streamProcessing section there
-        with open(os.path.join(data_dir, "streamInfo.json"), 'w') as f:
+        with open(os.path.join(rh_data_dir, "streamInfo.json"), 'w') as f:
                 json.dump(j2k_config["streamProcessing"], f, indent=4)
         # also copy the ancestor info
-        shutil.copy(os.path.join(output_dir, "ancestors.json"), data_dir)
+        shutil.copy(os.path.join(output_dir, "ancestors.json"), rh_data_dir)
         
 
     # deploy ResultsHub
