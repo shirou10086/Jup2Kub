@@ -115,7 +115,7 @@ def gen_code_to_cell(filepath, track_list_path, all_relations_path, ancestor_tra
         if var in variable_track_list and variable_track_list[var] < cell_number:
             defined_line = tracker.global_vars.get(var, float('inf'))
             if used_line < defined_line:
-                fetch_code = f"{var} = rh.fetchVarResult('{var}', varAncestorCell={variable_track_list[var]}, host='results-hub-service.default.svc.cluster.local')"
+                fetch_code = f"{var} = rh.fetchVarResult('{var}', varAncestorCell={variable_track_list[var]}, fetcher={cell_number}, host='results-hub-service.default.svc.cluster.local')"
                 fetch_and_wait_statements.append(fetch_code)
                 # Update all-rel data for variable usage across cells
                 all_relations[str(variable_track_list[var])][var].append(str(cell_number))

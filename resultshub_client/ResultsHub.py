@@ -72,14 +72,14 @@ class RecursiveSubmission:
                 print(f"Submission failed: {e}, retrying...")
                 time.sleep(2)  # Wait for 2 seconds before retrying
 
-def fetchVarResult(varName, varAncestorCell, host='localhost'):
+def fetchVarResult(varName, varAncestorCell, fetcher, host='localhost'):
     port = '30051'
     while True:
         try:
             with grpc.insecure_channel(f'{host}:{port}') as channel:
                 stub = J2kResultsHub_pb2_grpc.ResultsHubStub(channel)
                 fetch_request = J2kResultsHub_pb2.FetchVarResultRequest(
-                    varName=varName, varAncestorCell=varAncestorCell
+                    varName=varName, varAncestorCell=varAncestorCell, fetcher=fetcher
                 )
                 fetched_var = stub.FetchVarResult(fetch_request)
                 if not fetched_var.isJson:
