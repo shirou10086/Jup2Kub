@@ -387,7 +387,7 @@ def deploy_file_access_job(image_name, tag, namespace, pvc_name):
         print(f"Exception when creating Job: {e}")
         raise
 
-def deploy_external_host_service(port):
+def deploy_external_host_service(host_port, node_port):
     """
     Deploy a Kubernetes NodePort service to expose an external service running on each host.
     """
@@ -406,9 +406,9 @@ def deploy_external_host_service(port):
             type="NodePort",
             selector={"app": "host-service"},  # This should match the labels of any pods you want this service to route to, if applicable
             ports=[client.V1ServicePort(
-                port=port,
-                target_port=port,
-                node_port=port,
+                port=host_port,
+                target_port=host_port,
+                node_port=node_port,
                 protocol="TCP"
             )]
         )

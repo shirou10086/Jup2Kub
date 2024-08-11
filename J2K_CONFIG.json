@@ -35,6 +35,7 @@
     "streamProcessing": {
         "recursiveVars": ["x"],
         "processor-cells": [1, 2, 3],
-        "host-port": 12355
+        "host-port": 12355,
+        "in-cluster-port": 35505
     }
 }

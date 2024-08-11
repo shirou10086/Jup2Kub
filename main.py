@@ -220,9 +220,10 @@ def main(skip_dockerization, notebook_path, output_dir, dockerhub_username, dock
         # also copy the ancestor info
         shutil.copy(os.path.join(output_dir, "ancestors.json"), rh_data_dir)
         # also parse the port info if provided
-        if "host-port" in j2k_config["streamProcessing"]:
+        if "host-port" in j2k_config["streamProcessing"] and "in-cluster-port" in j2k_config["streamProcessing"]:
             port = j2k_config["streamProcessing"]["host-port"]
-            deploy_external_host_service(port)
+            in_cluster_port = j2k_config["streamProcessing"]["in-cluster-port"]
+            deploy_external_host_service(port, in_cluster_port)
         
 
     # deploy ResultsHub
