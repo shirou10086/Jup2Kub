@@ -6,6 +6,7 @@ import subprocess
 import sys
 import time
 import shutil
+import netifaces as ni
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from processfunction import process_directory
 #R packages
