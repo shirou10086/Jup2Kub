@@ -404,7 +404,7 @@ def deploy_external_host_access(name, in_cluster_port, host_ip, host_port):
         api_version="v1",
         kind="Service",
         metadata=client.V1ObjectMeta(
-            name="external-host-service",
+            name=name,
             namespace="default"
         ),
         spec=client.V1ServiceSpec(
