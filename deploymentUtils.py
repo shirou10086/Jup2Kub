@@ -426,7 +426,7 @@ def deploy_external_host_access(in_cluster_port, host_ip, host_port):
             namespace="default"
         ),
         subsets=[client.V1EndpointSubset(
-            addresses=[client.CoreV1EndpointAddress(ip=host_ip)],
+            addresses=[client.V1EndpointAddress(ip=host_ip)],
             ports=[client.CoreV1EndpointPort(port=host_port, protocol="TCP")]
         )]
     )
