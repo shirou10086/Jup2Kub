@@ -416,7 +416,7 @@ def deploy_external_host_service(host_port, node_port):
 
     try:
         api_instance.create_namespaced_service(namespace="default", body=service)
-        print(f"NodePort service host-service created in namespace 'default'. Exposed at port {port} on each node.")
+        print(f"NodePort service host-service created in namespace 'default'. Exposed at port {node_port} on each node.")
     except client.ApiException as e:
         print(f"Exception when creating service: {e}")
         raise
