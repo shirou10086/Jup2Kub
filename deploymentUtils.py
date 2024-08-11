@@ -387,9 +387,13 @@ def deploy_file_access_job(image_name, tag, namespace, pvc_name):
         print(f"Exception when creating Job: {e}")
         raise
 
-def deploy_external_host_service(node_port, host_port):
+def deploy_external_host_service(in_cluster_port, host_machine_port):
     """
     Deploy a Kubernetes NodePort service to expose an external service running on each host.
+    
+    Args:
+        in_cluster_port (int): The port on which the service will be accessible within the cluster.
+        host_machine_port (int): The port on which the service will be exposed on each host machine.
     """
     config.load_kube_config()  # Load kubeconfig
     api_instance = client.CoreV1Api()
@@ -406,9 +410,9 @@ def deploy_external_host_service(node_port, host_port):
             type="NodePort",
             selector={"app": "host-service"},  # This should match the labels of any pods you want this service to route to, if applicable
             ports=[client.V1ServicePort(
-                port=node_port,
-                target_port=node_port,
-                node_port=host_port,
+                port=in_cluster_port,
+                target_port=in_cluster_port,
+                node_port=host_machine_port,
                 protocol="TCP"
             )]
         )
@@ -416,7 +420,7 @@ def deploy_external_host_service(node_port, host_port):
 
     try:
         api_instance.create_namespaced_service(namespace="default", body=service)
-        print(f"NodePort service host-service created in namespace 'default'. Exposed at port {node_port} on each node. Host machine can use {host_port}.")
+        print(f"NodePort service 'host-service' created in namespace 'default'. Exposed in-cluster at port {in_cluster_port}. Externally accessible at {host_machine_port} on each node.")
     except client.ApiException as e:
         print(f"Exception when creating service: {e}")
         raise
