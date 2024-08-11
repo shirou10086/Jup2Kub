@@ -220,9 +220,9 @@ def main(skip_dockerization, notebook_path, output_dir, dockerhub_username, dock
         # also copy the ancestor info
         shutil.copy(os.path.join(output_dir, "ancestors.json"), rh_data_dir)
         # also parse the port info if provided
-        port = 0
         if "host-port" in j2k_config["streamProcessing"]:
             port = j2k_config["streamProcessing"]["host-port"]
+            deploy_external_host_service(port)
         
 
     # deploy ResultsHub
@@ -242,7 +242,7 @@ def main(skip_dockerization, notebook_path, output_dir, dockerhub_username, dock
     for image_tag_access in job_info_list:
         if image_tag_access[3]:
             # stream emitter or processor
-            deploy_stream_processor_deployment(image_name=image_tag_access[0], tag=image_tag_access[1], namespace=namespace, port=port)
+            deploy_stream_processor_deployment(image_name=image_tag_access[0], tag=image_tag_access[1], namespace=namespace)
         elif image_tag_access[2]:
             deploy_file_access_job(image_name=image_tag_access[0], tag=image_tag_access[1], namespace=namespace, pvc_name="pvcforjob")
         else:
