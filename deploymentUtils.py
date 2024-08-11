@@ -268,12 +268,12 @@ def deploy_stateless_job(image_name, tag, namespace):
         print(f"Exception when creating Job: {e}")
         raise
 
-def deploy_stream_processor_deployment(image_name, tag, namespace):
+def deploy_stream_processor_deployment(image_name, tag, namespace, port):
     config.load_kube_config()  # Load kubeconfig
     api_instance = client.AppsV1Api()
 
     image_name_no_repo = image_name.split('/', 1)[1]
-    deployment_name = f"j2k-deployment-{image_name_no_repo}-{tag}" # note we remove the repo name here
+    deployment_name = f"j2k-deployment-{image_name_no_repo}-{tag}"  # note we remove the repo name here
 
     # Define the Deployment
     deployment = client.V1Deployment(
@@ -291,10 +291,24 @@ def deploy_stream_processor_deployment(image_name, tag, namespace):
                     containers=[client.V1Container(
                         name="jup2kub-container",
                         image=f"{image_name}:{tag}",
-                        image_pull_policy="Always"
+                        image_pull_policy="Always",
+                        env=[
+                            client.V1EnvVar(
+                                name="HOST_IP",
+                                valueFrom=client.V1EnvVarSource(
+                                    fieldRef=client.V1ObjectFieldSelector(
+                                        fieldPath="status.hostIP"
+                                    )
+                                )
+                            ),
+                            client.V1EnvVar(
+                                name="HOST_PORT",
+                                value=str(port)
+                            )
+                        ]
                     )],
                     restart_policy="Always",  # Ensure the container restarts on termination
-                    tolerations=[ # Add this toleration because we do want the master node to run cells as well
+                    tolerations=[  # Add this toleration because we do want the master node to run cells as well
                         client.V1Toleration(
                             key="node-role.kubernetes.io/control-plane",
                             operator="Exists",
@@ -309,7 +323,7 @@ def deploy_stream_processor_deployment(image_name, tag, namespace):
     try:
         api_instance.create_namespaced_deployment(namespace=namespace, body=deployment)
         print(f"Deployment '{deployment_name}' created in namespace '{namespace}'.")
-    except ApiException as e:
+    except client.ApiException as e:
         print(f"Exception when creating Deployment: {e}")
         raise
 
