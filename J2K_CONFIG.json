@@ -36,6 +36,6 @@
         "recursiveVars": ["x"],
         "processor-cells": [1, 2, 3],
         "host-port": 12355,
-        "in-cluster-port": 35505
+        "in-cluster-port": 32760
     }
 }
