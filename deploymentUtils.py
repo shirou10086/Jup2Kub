@@ -387,7 +387,7 @@ def deploy_file_access_job(image_name, tag, namespace, pvc_name):
         print(f"Exception when creating Job: {e}")
         raise
 
-def deploy_external_host_service(host_port, node_port):
+def deploy_external_host_service(node_port, host_port):
     """
     Deploy a Kubernetes NodePort service to expose an external service running on each host.
     """
@@ -406,9 +406,9 @@ def deploy_external_host_service(host_port, node_port):
             type="NodePort",
             selector={"app": "host-service"},  # This should match the labels of any pods you want this service to route to, if applicable
             ports=[client.V1ServicePort(
-                port=host_port,
-                target_port=host_port,
-                node_port=node_port,
+                port=node_port,
+                target_port=node_port,
+                node_port=host_port,
                 protocol="TCP"
             )]
         )
@@ -416,7 +416,7 @@ def deploy_external_host_service(host_port, node_port):
 
     try:
         api_instance.create_namespaced_service(namespace="default", body=service)
-        print(f"NodePort service host-service created in namespace 'default'. Exposed at port {node_port} on each node.")
+        print(f"NodePort service host-service created in namespace 'default'. Exposed at port {node_port} on each node. Host machine can use {host_port}.")
     except client.ApiException as e:
         print(f"Exception when creating service: {e}")
         raise

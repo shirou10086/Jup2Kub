@@ -223,7 +223,7 @@ def main(skip_dockerization, notebook_path, output_dir, dockerhub_username, dock
         if "host-port" in j2k_config["streamProcessing"] and "in-cluster-port" in j2k_config["streamProcessing"]:
             port = j2k_config["streamProcessing"]["host-port"]
             in_cluster_port = j2k_config["streamProcessing"]["in-cluster-port"]
-            deploy_external_host_service(port, in_cluster_port)
+            deploy_external_host_service(in_cluster_port, port)
         
 
     # deploy ResultsHub
