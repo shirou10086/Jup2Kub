@@ -418,16 +418,16 @@ def deploy_external_host_access(in_cluster_port, host_ip, host_port):
     )
 
     # Define the endpoints to point to the external host
-    endpoints = client.V1Endpoints(
+    endpoints = client.CoreV1Endpoints(
         api_version="v1",
         kind="Endpoints",
         metadata=client.V1ObjectMeta(
             name="external-host-service",
             namespace="default"
         ),
-        subsets=[client.V1EndpointSubset(
-            addresses=[client.V1EndpointAddress(ip=host_ip)],
-            ports=[client.V1EndpointPort(port=host_port, protocol="TCP")]
+        subsets=[client.CoreV1EndpointSubset(
+            addresses=[client.CoreV1EndpointAddress(ip=host_ip)],
+            ports=[client.CoreV1EndpointPort(port=host_port, protocol="TCP")]
         )]
     )
 
