@@ -411,7 +411,7 @@ def deploy_external_host_service(in_cluster_port, host_machine_port):
             selector={"app": "host-service"},  # This should match the labels of any pods you want this service to route to, if applicable
             ports=[client.V1ServicePort(
                 port=in_cluster_port,
-                target_port=in_cluster_port,
+                target_port=host_machine_port,
                 node_port=host_machine_port,
                 protocol="TCP"
             )]
