@@ -418,7 +418,7 @@ def deploy_external_host_access(in_cluster_port, host_ip, host_port):
     )
 
     # Define the endpoints to point to the external host
-    endpoints = client.CoreV1Endpoints(
+    endpoints = client.CoreV1EndpointPort(
         api_version="v1",
         kind="Endpoints",
         metadata=client.V1ObjectMeta(
