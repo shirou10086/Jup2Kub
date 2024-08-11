@@ -35,7 +35,20 @@
     "streamProcessing": {
         "recursiveVars": ["x"],
         "processor-cells": [1, 2, 3],
-        "in-cluster-port": 12355,
-        "host-port": 32760
+        "external-services": [
+            {   
+                "name": "outputdb",
+                "ip": "172.31.18.242",
+                "in-cluster-port": 12355,
+                "host-port": 32760
+            },
+
+            {
+                "name": "inputserver",
+                "ip": "172.31.18.242",
+                "in-cluster-port": 12356,
+                "host-port": 32761
+            }
+        ]
     }
 }

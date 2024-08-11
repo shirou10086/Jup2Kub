@@ -387,7 +387,7 @@ def deploy_file_access_job(image_name, tag, namespace, pvc_name):
         print(f"Exception when creating Job: {e}")
         raise
 
-def deploy_external_host_access(in_cluster_port, host_ip, host_port):
+def deploy_external_host_access(name, in_cluster_port, host_ip, host_port):
     """
     Create a service and endpoints in Kubernetes to access an external service running on a host machine.
 
@@ -422,7 +422,7 @@ def deploy_external_host_access(in_cluster_port, host_ip, host_port):
         api_version="v1",
         kind="Endpoints",
         metadata=client.V1ObjectMeta(
-            name="external-host-service",
+            name=name,
             namespace="default"
         ),
         subsets=[client.V1EndpointSubset(
@@ -434,7 +434,7 @@ def deploy_external_host_access(in_cluster_port, host_ip, host_port):
     try:
         # Create the service
         api_instance.create_namespaced_service(namespace="default", body=service)
-        print(f"ClusterIP service 'external-host-service' created in namespace 'default'. Accessible within cluster at port {in_cluster_port}.")
+        print(f"ClusterIP service {name} created in namespace 'default'. Accessible within cluster at port {in_cluster_port}.")
         
         # Create the endpoints
         api_instance.create_namespaced_endpoints(namespace="default", body=endpoints)
