@@ -100,6 +100,16 @@ def make_while_true_python_files(directory, number_list):
                 # Skip files that don't have a proper number format
                 continue
 
+def get_default_gateway_interface_ip():
+    """
+    Get the IP address of the default gateway interface.
+    """
+    gws = ni.gateways()
+    default_gateway = gws['default'][ni.AF_INET][0]
+    interface = gws['default'][ni.AF_INET][1]
+    ip = ni.ifaddresses(interface)[ni.AF_INET][0]['addr']
+    return ip
+
 def main(skip_dockerization, notebook_path, output_dir, dockerhub_username, dockerhub_repository, image_list_path, n_docker_worker):
 
     # STEP 0: Check if we can skip the codegen & dockerization phase
@@ -223,7 +233,7 @@ def main(skip_dockerization, notebook_path, output_dir, dockerhub_username, dock
         if "host-port" in j2k_config["streamProcessing"] and "in-cluster-port" in j2k_config["streamProcessing"]:
             port = j2k_config["streamProcessing"]["host-port"]
             in_cluster_port = j2k_config["streamProcessing"]["in-cluster-port"]
-            deploy_external_host_service(in_cluster_port, port)
+            deploy_external_host_access(in_cluster_port, get_default_gateway_interface_ip(), port)
         
 
     # deploy ResultsHub

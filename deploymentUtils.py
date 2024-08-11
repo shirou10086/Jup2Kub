@@ -387,40 +387,58 @@ def deploy_file_access_job(image_name, tag, namespace, pvc_name):
         print(f"Exception when creating Job: {e}")
         raise
 
-def deploy_external_host_service(in_cluster_port, host_machine_port):
+def deploy_external_host_access(in_cluster_port, host_ip, host_port):
     """
-    Deploy a Kubernetes NodePort service to expose an external service running on each host.
-    
+    Create a service and endpoints in Kubernetes to access an external service running on a host machine.
+
     Args:
         in_cluster_port (int): The port on which the service will be accessible within the cluster.
-        host_machine_port (int): The port on which the service will be exposed on each host machine.
+        host_ip (str): The IP address of the host machine where the external service is running.
+        host_port (int): The port on the host machine where the external service is listening.
     """
     config.load_kube_config()  # Load kubeconfig
     api_instance = client.CoreV1Api()
 
-    # Define the service
+    # Define the service without a selector
     service = client.V1Service(
         api_version="v1",
         kind="Service",
         metadata=client.V1ObjectMeta(
-            name="host-service",
+            name="external-host-service",
             namespace="default"
         ),
         spec=client.V1ServiceSpec(
-            type="NodePort",
-            selector={"app": "host-service"},  # This should match the labels of any pods you want this service to route to, if applicable
+            type="ClusterIP",
             ports=[client.V1ServicePort(
                 port=in_cluster_port,
-                target_port=host_machine_port,
-                node_port=host_machine_port,
+                target_port=host_port,
                 protocol="TCP"
             )]
         )
     )
 
+    # Define the endpoints to point to the external host
+    endpoints = client.V1Endpoints(
+        api_version="v1",
+        kind="Endpoints",
+        metadata=client.V1ObjectMeta(
+            name="external-host-service",
+            namespace="default"
+        ),
+        subsets=[client.V1EndpointSubset(
+            addresses=[client.V1EndpointAddress(ip=host_ip)],
+            ports=[client.V1EndpointPort(port=host_port, protocol="TCP")]
+        )]
+    )
+
     try:
+        # Create the service
         api_instance.create_namespaced_service(namespace="default", body=service)
-        print(f"NodePort service 'host-service' created in namespace 'default'. Exposed in-cluster at port {in_cluster_port}. Externally accessible at {host_machine_port} on each node.")
+        print(f"ClusterIP service 'external-host-service' created in namespace 'default'. Accessible within cluster at port {in_cluster_port}.")
+        
+        # Create the endpoints
+        api_instance.create_namespaced_endpoints(namespace="default", body=endpoints)
+        print(f"Endpoints for 'external-host-service' created pointing to {host_ip}:{host_port}.")
     except client.ApiException as e:
-        print(f"Exception when creating service: {e}")
+        print(f"Exception when creating service or endpoints: {e}")
         raise
