@@ -52,7 +52,11 @@ class VariableTracker(ast.NodeVisitor):
         for target in node.targets:
             if isinstance(target, ast.Name):
                 self.current_scope[target.id] = node.lineno
+                if isinstance(node.value, ast.Attribute) and isinstance(node.value.value, ast.Name):
+                    if node.value.value.id == target.id:
+                        self.used_vars[target.id] = node.lineno
         self.generic_visit(node)
+
 
     def visit_AugAssign(self, node):
         if isinstance(node.target, ast.Name):
