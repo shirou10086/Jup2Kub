@@ -4,7 +4,7 @@ import pandas as pd
 import numpy as np
 import time
 
-print(time.ctime())
+print(time.time())
 # This setting helps to display all the columns in the dataframe
 pd.set_option('display.max_columns', None)
 
@@ -59,4 +59,4 @@ print(extreme_temps.head())
 
 extreme_temps.to_csv('extreme_weather_conditions.csv', index=False)
 
-print(time.ctime())
+print(time.time())
